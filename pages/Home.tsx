@@ -1,22 +1,70 @@
 
-import React from 'react';
-import { AppState, Order } from '../types';
-import { MOCK_CUSTOMERS } from '../constants';
+import React, { useMemo, useState } from 'react';
+import { AppState, Order, Customer, Product, User } from '../types';
 import BottomNav from '../components/BottomNav';
+import TopMenu from '../components/TopMenu';
 
 interface HomeProps {
   navigate: (page: AppState, customerId?: string | null) => void;
   orders: Order[];
+  customers: Customer[];
+  products: Product[];
+  onSelectTopProduct: (productId: string) => void;
   privacyMode: boolean;
   setPrivacyMode: (v: boolean) => void;
+  currentUser: User | null;
 }
 
-const Home: React.FC<HomeProps> = ({ navigate, orders, privacyMode, setPrivacyMode }) => {
+const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, onSelectTopProduct, privacyMode, setPrivacyMode, currentUser }) => {
+  const [orderSearch, setOrderSearch] = useState('');
+  const [showSearch, setShowSearch] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [tableFilter, setTableFilter] = useState('');
+  const [customerFilter, setCustomerFilter] = useState('');
+
   const totalBalance = orders.reduce((acc, order) => {
     const consumption = order.items.reduce((sum, item) => sum + (item.priceAtSale * item.quantity), 0);
     const paid = order.payments.reduce((sum, p) => sum + p.amount, 0);
     return acc + (consumption - paid);
   }, 0);
+
+  const openOrders = orders.filter(order => order.status === 'open');
+  const filteredOrders = openOrders.filter(order => {
+    const customer = customers.find(c => c.id === order.customerId);
+    const name = customer?.name?.toLowerCase() || '';
+    const table = (order.table || '').toLowerCase();
+    const search = orderSearch.toLowerCase().trim();
+    const tableF = tableFilter.toLowerCase().trim();
+    const customerF = customerFilter.toLowerCase().trim();
+
+    const matchesSearch = search.length === 0 || name.includes(search);
+    const matchesTable = tableF.length === 0 || table.includes(tableF);
+    const matchesCustomer = customerF.length === 0 || name.includes(customerF);
+    return matchesSearch && matchesTable && matchesCustomer;
+  });
+
+  const topProducts = useMemo(() => {
+    const counter = new Map<string, number>();
+    orders.forEach(order => {
+      order.items.forEach(item => {
+        counter.set(item.productId, (counter.get(item.productId) || 0) + item.quantity);
+      });
+    });
+    const ranked = Array.from(counter.entries())
+      .sort((a, b) => b[1] - a[1])
+      .map(([productId, quantity]) => ({ productId, quantity }));
+    const list = ranked
+      .map(r => {
+        const product = products.find(p => p.id === r.productId);
+        return product ? { product, quantity: r.quantity } : null;
+      })
+      .filter(Boolean) as { product: Product; quantity: number }[];
+
+    if (list.length === 0) {
+      return products.slice(0, 12).map(product => ({ product, quantity: 0 }));
+    }
+    return list.slice(0, 12);
+  }, [orders, products]);
 
   return (
     <div className="pb-32">
@@ -36,10 +84,21 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, privacyMode, setPrivacyMo
             >
               <span className="material-icons-round text-xl">{privacyMode ? 'visibility' : 'visibility_off'}</span>
             </button>
+            {currentUser?.role === 'admin' && (
+              <button
+                onClick={() => navigate('users')}
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-primary/10 border border-primary/20 text-primary"
+              >
+                <span className="material-icons-round text-xl">admin_panel_settings</span>
+              </button>
+            )}
             <button className="w-10 h-10 flex items-center justify-center rounded-full bg-primary/10 border border-primary/20 text-primary">
               <span className="material-icons-round text-xl">notifications</span>
             </button>
           </div>
+        </div>
+        <div className="px-5 pb-4">
+          <TopMenu active="list" navigate={navigate} />
         </div>
       </header>
 
@@ -65,53 +124,94 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, privacyMode, setPrivacyMo
           </div>
         </section>
 
-        {/* Favorites Section */}
+        {/* Top Products Mini Grid */}
         <section className="mt-10">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold">Favoritos</h3>
-            <button className="text-primary text-sm font-semibold hover:opacity-70 transition-opacity">Ver todos</button>
+            <h3 className="text-lg font-bold">Mais Vendidos</h3>
           </div>
-          <div className="flex gap-4 overflow-x-auto no-scrollbar -mx-5 px-5">
-            {MOCK_CUSTOMERS.filter(c => c.isFavorite).map(customer => (
-              <button 
-                key={customer.id} 
-                onClick={() => navigate('sale')}
-                className="flex flex-col items-center gap-2 min-w-[70px] active:scale-95 transition-transform"
+          <div className="grid grid-cols-3 gap-3">
+            {topProducts.map(({ product, quantity }) => (
+              <button
+                key={product.id}
+                onClick={() => onSelectTopProduct(product.id)}
+                className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden text-left active:scale-95 transition-transform h-32"
               >
-                <div className="relative">
-                  <img src={customer.avatar} className="w-16 h-16 rounded-full object-cover border-2 border-primary p-0.5" alt={customer.name} />
-                  <div className="absolute bottom-0 right-0 w-5 h-5 bg-primary rounded-full border-2 border-background-dark flex items-center justify-center">
-                    <span className="material-icons-round text-[10px] text-background-dark">push_pin</span>
+                <div className="h-20 bg-white/10 relative">
+                  <img src={product.image} className="w-full h-full object-cover" alt={product.name} />
+                  <div className="absolute top-2 right-2 bg-background-dark/70 rounded-full px-2 py-1 text-[10px] font-bold text-white">
+                    R$ {product.price.toFixed(2)}
                   </div>
                 </div>
-                <span className="text-xs font-semibold truncate w-full text-center">{customer.name.split(' ')[0]}</span>
+                <div className="p-3">
+                  <p className="text-xs font-bold truncate">{product.name}</p>
+                  <p className="text-[9px] text-white/40 uppercase font-medium">
+                    {quantity > 0 ? `${quantity} vendidos` : 'Sem histórico'}
+                  </p>
+                </div>
               </button>
             ))}
-            <button className="flex flex-col items-center gap-2 min-w-[70px]">
-              <div className="w-16 h-16 rounded-full bg-primary/10 border-2 border-dashed border-primary/30 flex items-center justify-center text-primary/50">
-                <span className="material-icons-round">add</span>
-              </div>
-              <span className="text-xs font-semibold text-primary/50">Novo</span>
-            </button>
           </div>
         </section>
 
         {/* Active Accounts Grid */}
         <section className="mt-10">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold">Contas Ativas</h3>
-            <div className="flex gap-2">
-              <button className="w-8 h-8 rounded-lg bg-primary/5 border border-primary/10 flex items-center justify-center text-primary">
+            <h3 className="text-lg font-bold">Comandas Ativas</h3>
+            <div className="flex items-center gap-2">
+              <div className={`relative overflow-hidden transition-all duration-200 ${showSearch ? 'w-44' : 'w-0'}`}>
+                <input
+                  type="text"
+                  value={orderSearch}
+                  onChange={(e) => setOrderSearch(e.target.value)}
+                  onBlur={() => {
+                    if (orderSearch.trim().length === 0) setShowSearch(false);
+                  }}
+                  placeholder="Buscar..."
+                  className="w-full bg-white/5 border border-primary/10 rounded-lg py-1.5 pl-8 pr-2 text-xs"
+                />
+                <span className="material-icons-round absolute left-2 top-1/2 -translate-y-1/2 text-white/30 text-sm">search</span>
+              </div>
+              <button
+                onClick={() => {
+                  if (showSearch && orderSearch.trim().length === 0) {
+                    setShowSearch(false);
+                    return;
+                  }
+                  setShowSearch(true);
+                }}
+                className="w-8 h-8 rounded-lg bg-primary/5 border border-primary/10 flex items-center justify-center text-primary"
+              >
                 <span className="material-icons-round text-sm">search</span>
               </button>
-              <button className="w-8 h-8 rounded-lg bg-primary/5 border border-primary/10 flex items-center justify-center text-primary">
+              <button
+                onClick={() => setShowFilters(v => !v)}
+                className="w-8 h-8 rounded-lg bg-primary/5 border border-primary/10 flex items-center justify-center text-primary"
+              >
                 <span className="material-icons-round text-sm">filter_list</span>
               </button>
             </div>
           </div>
+          {showFilters && (
+            <div className="mb-4 grid grid-cols-2 gap-3">
+              <input
+                type="text"
+                value={tableFilter}
+                onChange={(e) => setTableFilter(e.target.value)}
+                placeholder="Filtrar por mesa"
+                className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 px-3 text-sm"
+              />
+              <input
+                type="text"
+                value={customerFilter}
+                onChange={(e) => setCustomerFilter(e.target.value)}
+                placeholder="Filtrar por cliente"
+                className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 px-3 text-sm"
+              />
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-4">
-            {orders.map(order => {
-              const customer = MOCK_CUSTOMERS.find(c => c.id === order.customerId);
+            {filteredOrders.map(order => {
+              const customer = customers.find(c => c.id === order.customerId);
               const consumption = order.items.reduce((acc, i) => acc + (i.priceAtSale * i.quantity), 0);
               const paid = order.payments.reduce((acc, p) => acc + p.amount, 0);
               const balance = consumption - paid;
@@ -139,6 +239,11 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, privacyMode, setPrivacyMo
                 </div>
               );
             })}
+            {filteredOrders.length === 0 && (
+              <div className="col-span-2 text-center text-white/40 text-sm py-6">
+                Nenhuma comanda aberta encontrada.
+              </div>
+            )}
           </div>
         </section>
       </main>
@@ -150,7 +255,7 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, privacyMode, setPrivacyMo
         <span className="material-icons-round text-3xl font-bold">add</span>
       </button>
 
-      <BottomNav activePage="home" navigate={navigate} />
+      <BottomNav activePage="home" navigate={navigate} currentUserRole={currentUser?.role} />
     </div>
   );
 };

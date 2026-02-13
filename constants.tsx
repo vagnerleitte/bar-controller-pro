@@ -1,5 +1,5 @@
 
-import { Product, Customer } from './types';
+import { Product, Customer, Order } from './types';
 
 export const MOCK_PRODUCTS: Product[] = [
   {
@@ -50,14 +50,16 @@ export const MOCK_CUSTOMERS: Customer[] = [
     name: 'Thiago Martins',
     avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDVszlZncxvjVAbz59MMfQPS1ujxF8aoL9GMmc0IuSnjtAD2xO891qhtPDhhparviKXCmVqkhWajBwGqZZI_7cUW4IlED4msssxAbK4p-SZ_C0gcrHNuujwKy9-GKUhS48ch8vcd_8R05hThAo6NxhQYIICC4jTlIyAsMGrctxRNQvPHsQT1MykOqmOfvhdP-f40iKzdnj1I3WYNAngdYoF3ygOTNaBqOwmz_2pn6jW_ydTbBcThhPOChQwY6TjtJOFYAlqESyrf-co',
     isFavorite: true,
-    phone: '+55 11 98877-6655'
+    phone: '+55 11 98877-6655',
+    monthlyLimit: 1200
   },
   {
     id: 'c2',
     name: 'Mariana Costa',
     avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAFWKWBWCSi4MqdA57vKpfjcndaC8wnAaZqAUhgWBEj3IhAotoRM-Sa-m0UxjQ7-9uqcYwb3LJ1W7aURTT8tShRAVc3bQ3aqECKYU20jqsQxkApYvEs0fcSzG4-n-LjZcxfcFQxSrwIl55YalMLoCtSHED71dlA6DtJKrErc6kPphkLvHLHEQLexORiuUv7w9GZQfFjMdbWSWaxvW3rYfHreN1NK1w2uTvqqDwDa8p_-TNCV1jYfvsvCx5kqYqt5c5hN1DH6X_mWr0D',
     isFavorite: true,
-    phone: '+55 11 97766-5544'
+    phone: '+55 11 97766-5544',
+    monthlyLimit: 800
   },
   {
     id: 'c3',
@@ -71,6 +73,87 @@ export const MOCK_CUSTOMERS: Customer[] = [
     name: 'Beatriz Silva',
     avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCdHKwDwZ_kYjzBgKjsqtCrfJMoZXOgs_AA3xq5GW2yOMB2DVYfPQTL-rOTZ_x9YEsHR9wiXpE73EOyNJ76wcnYmYHGeF6O09Bji5OrbicDdyfvL6zOm1Hf54JfXGolti2h2OrZu2sR4emorvHUYSz2aMKem_462nGfGdmtQ_mzSeD4mHUlpty818PW-gwoGyVel3iwlIfHuSatId49NGayw2rJ8dC4yH7ebPqJ8KwUZDgxPSZ23uIEd4vLYgxQcvGkYEAG_O9MN2EQ',
     isFavorite: false,
-    phone: '+55 11 95544-3322'
+    phone: '+55 11 95544-3322',
+    monthlyLimit: 1500
+  },
+  {
+    id: 'c5',
+    name: 'Fernanda Lima',
+    avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAFWKWBWCSi4MqdA57vKpfjcndaC8wnAaZqAUhgWBEj3IhAotoRM-Sa-m0UxjQ7-9uqcYwb3LJ1W7aURTT8tShRAVc3bQ3aqECKYU20jqsQxkApYvEs0fcSzG4-n-LjZcxfcFQxSrwIl55YalMLoCtSHED71dlA6DtJKrErc6kPphkLvHLHEQLexORiuUv7w9GZQfFjMdbWSWaxvW3rYfHreN1NK1w2uTvqqDwDa8p_-TNCV1jYfvsvCx5kqYqt5c5hN1DH6X_mWr0D',
+    isFavorite: false,
+    phone: '+55 11 94433-2211'
+  },
+  {
+    id: 'c6',
+    name: 'Lucas Ferreira',
+    avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDwAxGoxwMYcPm7RYv2bCYqXed2eYTuiQ6OBh944d5fFcyP2pFNBViN_BJsuHeabAnv3zS32HUS95A3Z0oP4BN1ASIotJgSr6rXPWj8-40mNTwH8tFOG76ubMpaRBphBZNYEn0a3V5voNWHXkyRJH8X9n8xhdSpt25tBL6aMf0HyYZCVnNnKJmg-WfCxZyOaOVh2mQgp1U4w3GviAPgpNGaYtgPWQ1W5jvZpnkf7y-Jo77ejqp_HSPSFzDkHRGP6wv9jJK4KKasS1v-',
+    isFavorite: false,
+    phone: '+55 21 93322-1188'
+  },
+  {
+    id: 'c7',
+    name: 'Aline Rocha',
+    avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDVszlZncxvjVAbz59MMfQPS1ujxF8aoL9GMmc0IuSnjtAD2xO891qhtPDhhparviKXCmVqkhWajBwGqZZI_7cUW4IlED4msssxAbK4p-SZ_C0gcrHNuujwKy9-GKUhS48ch8vcd_8R05hThAo6NxhQYIICC4jTlIyAsMGrctxRNQvPHsQT1MykOqmOfvhdP-f40iKzdnj1I3WYNAngdYoF3ygOTNaBqOwmz_2pn6jW_ydTbBcThhPOChQwY6TjtJOFYAlqESyrf-co',
+    isFavorite: false,
+    phone: '+55 31 92211-7733',
+    monthlyLimit: 600
+  },
+  {
+    id: 'c8',
+    name: 'Rafael Pinto',
+    avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCdHKwDwZ_kYjzBgKjsqtCrfJMoZXOgs_AA3xq5GW2yOMB2DVYfPQTL-rOTZ_x9YEsHR9wiXpE73EOyNJ76wcnYmYHGeF6O09Bji5OrbicDdyfvL6zOm1Hf54JfXGolti2h2OrZu2sR4emorvHUYSz2aMKem_462nGfGdmtQ_mzSeD4mHUlpty818PW-gwoGyVel3iwlIfHuSatId49NGayw2rJ8dC4yH7ebPqJ8KwUZDgxPSZ23uIEd4vLYgxQcvGkYEAG_O9MN2EQ',
+    isFavorite: false,
+    phone: '+55 51 94455-8899'
+  },
+  {
+    id: 'c9',
+    name: 'Juliana Prado',
+    avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAFWKWBWCSi4MqdA57vKpfjcndaC8wnAaZqAUhgWBEj3IhAotoRM-Sa-m0UxjQ7-9uqcYwb3LJ1W7aURTT8tShRAVc3bQ3aqECKYU20jqsQxkApYvEs0fcSzG4-n-LjZcxfcFQxSrwIl55YalMLoCtSHED71dlA6DtJKrErc6kPphkLvHLHEQLexORiuUv7w9GZQfFjMdbWSWaxvW3rYfHreN1NK1w2uTvqqDwDa8p_-TNCV1jYfvsvCx5kqYqt5c5hN1DH6X_mWr0D',
+    isFavorite: false,
+    phone: '+55 61 96677-2211'
+  },
+  {
+    id: 'c10',
+    name: 'Bruno Almeida',
+    avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDVszlZncxvjVAbz59MMfQPS1ujxF8aoL9GMmc0IuSnjtAD2xO891qhtPDhhparviKXCmVqkhWajBwGqZZI_7cUW4IlED4msssxAbK4p-SZ_C0gcrHNuujwKy9-GKUhS48ch8vcd_8R05hThAo6NxhQYIICC4jTlIyAsMGrctxRNQvPHsQT1MykOqmOfvhdP-f40iKzdnj1I3WYNAngdYoF3ygOTNaBqOwmz_2pn6jW_ydTbBcThhPOChQwY6TjtJOFYAlqESyrf-co',
+    isFavorite: false,
+    phone: '+55 81 93311-0044'
+  },
+  {
+    id: 'c11',
+    name: 'Camila Souza',
+    avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCdHKwDwZ_kYjzBgKjsqtCrfJMoZXOgs_AA3xq5GW2yOMB2DVYfPQTL-rOTZ_x9YEsHR9wiXpE73EOyNJ76wcnYmYHGeF6O09Bji5OrbicDdyfvL6zOm1Hf54JfXGolti2h2OrZu2sR4emorvHUYSz2aMKem_462nGfGdmtQ_mzSeD4mHUlpty818PW-gwoGyVel3iwlIfHuSatId49NGayw2rJ8dC4yH7ebPqJ8KwUZDgxPSZ23uIEd4vLYgxQcvGkYEAG_O9MN2EQ',
+    isFavorite: false,
+    phone: '+55 91 97766-8899'
+  },
+  {
+    id: 'c12',
+    name: 'Pedro Henrique',
+    avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDwAxGoxwMYcPm7RYv2bCYqXed2eYTuiQ6OBh944d5fFcyP2pFNBViN_BJsuHeabAnv3zS32HUS95A3Z0oP4BN1ASIotJgSr6rXPWj8-40mNTwH8tFOG76ubMpaRBphBZNYEn0a3V5voNWHXkyRJH8X9n8xhdSpt25tBL6aMf0HyYZCVnNnKJmg-WfCxZyOaOVh2mQgp1U4w3GviAPgpNGaYtgPWQ1W5jvZpnkf7y-Jo77ejqp_HSPSFzDkHRGP6wv9jJK4KKasS1v-',
+    isFavorite: false,
+    phone: '+55 71 98800-7766'
+  }
+];
+
+export const MOCK_ORDERS: Order[] = [
+  {
+    id: 'o1',
+    customerId: 'c3',
+    location: 'Mesa',
+    table: '04',
+    status: 'open',
+    items: [{ productId: 'p1', quantity: 3, priceAtSale: 12 }],
+    payments: [],
+    createdAt: new Date()
+  },
+  {
+    id: 'o2',
+    customerId: 'c4',
+    location: 'Mesa',
+    table: '18',
+    status: 'payment',
+    items: [{ productId: 'p2', quantity: 2, priceAtSale: 28 }],
+    payments: [{ id: 'py1', method: 'PIX', amount: 20, createdAt: new Date() }],
+    createdAt: new Date()
   }
 ];

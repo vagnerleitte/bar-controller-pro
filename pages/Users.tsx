@@ -1,0 +1,176 @@
+import React, { useMemo, useState } from 'react';
+import { AppState, User, UserRole } from '../types';
+import BottomNav from '../components/BottomNav';
+import { createUser, formatCPF, normalizeCPF, resetUserPassword, updateUserRole } from '../services/auth';
+
+interface UsersProps {
+  navigate: (page: AppState, customerId?: string | null) => void;
+  users: User[];
+  setUsers: React.Dispatch<React.SetStateAction<User[]>>;
+  currentUser: User | null;
+}
+
+const Users: React.FC<UsersProps> = ({ navigate, users, setUsers, currentUser }) => {
+  const [name, setName] = useState('');
+  const [cpf, setCpf] = useState('');
+  const [role, setRole] = useState<UserRole>('seller');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  const canManage = currentUser?.role === 'admin';
+
+  const sortedUsers = useMemo(() => {
+    return [...users].sort((a, b) => a.name.localeCompare(b.name));
+  }, [users]);
+
+  const handleCreate = async () => {
+    if (!canManage || saving) return;
+    setError(null);
+    if (name.trim().length < 3 || normalizeCPF(cpf).length !== 11 || password.trim().length < 4) {
+      setError('Preencha nome, CPF válido e senha (min 4).');
+      return;
+    }
+    setSaving(true);
+    const { user, error } = await createUser({ name, cpf, role, password });
+    setSaving(false);
+    if (!user) {
+      setError(error || 'Falha ao criar usuário.');
+      return;
+    }
+    setUsers(prev => [...prev, user]);
+    setName('');
+    setCpf('');
+    setPassword('');
+    setRole('seller');
+  };
+
+  const handleRoleChange = async (userId: string, newRole: UserRole) => {
+    if (!canManage) return;
+    const updated = await updateUserRole(userId, newRole);
+    if (!updated) return;
+    setUsers(prev => prev.map(u => (u.id === userId ? updated : u)));
+  };
+
+  const handleResetPassword = async (userId: string) => {
+    if (!canManage) return;
+    const newPassword = prompt('Nova senha (mín 4 caracteres):');
+    if (!newPassword || newPassword.trim().length < 4) return;
+    const updated = await resetUserPassword(userId, newPassword.trim());
+    if (!updated) return;
+    setUsers(prev => prev.map(u => (u.id === userId ? updated : u)));
+  };
+
+  return (
+    <div className="pb-32">
+      <header className="sticky top-0 z-50 bg-background-dark/80 backdrop-blur-xl border-b border-primary/10 safe-area-top">
+        <div className="px-5 py-4 flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-extrabold tracking-tight">Usuários</h1>
+            <p className="text-xs text-primary/60 font-medium uppercase tracking-widest mt-0.5">Admin e vendedores</p>
+          </div>
+          <button
+            onClick={() => navigate('home')}
+            className="w-10 h-10 flex items-center justify-center rounded-full bg-primary text-background-dark shadow-lg shadow-primary/20 transition-transform active:scale-90"
+          >
+            <span className="material-icons-round text-xl">arrow_back</span>
+          </button>
+        </div>
+      </header>
+
+      <main className="px-5 py-6 space-y-6">
+        <section className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-4">
+          <h2 className="text-sm font-bold uppercase tracking-widest text-white/60">Novo usuário</h2>
+          <div className="grid grid-cols-1 gap-3">
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Nome completo"
+              className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-sm"
+              disabled={!canManage}
+            />
+            <input
+              type="text"
+              value={formatCPF(cpf)}
+              onChange={(e) => setCpf(e.target.value)}
+              placeholder="CPF"
+              className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-sm"
+              disabled={!canManage}
+            />
+            <select
+              value={role}
+              onChange={(e) => setRole(e.target.value as UserRole)}
+              className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-sm"
+              disabled={!canManage}
+            >
+              <option value="seller">Vendedor</option>
+              <option value="admin">Admin</option>
+            </select>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Senha"
+              className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-sm"
+              disabled={!canManage}
+            />
+          </div>
+          {error && <div className="text-xs text-red-400 font-semibold">{error}</div>}
+          <button
+            onClick={handleCreate}
+            disabled={!canManage || saving}
+            className="w-full bg-primary hover:bg-primary/90 text-background-dark font-bold py-3 rounded-xl transition-all shadow-lg shadow-primary/20 disabled:opacity-60"
+          >
+            {saving ? 'Salvando...' : 'Criar usuário'}
+          </button>
+          {!canManage && (
+            <div className="text-[10px] text-white/40 uppercase tracking-widest">
+              Somente administradores podem criar usuários.
+            </div>
+          )}
+        </section>
+
+        <section className="space-y-3">
+          {sortedUsers.map(user => (
+            <div
+              key={user.id}
+              className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center justify-between"
+            >
+              <div>
+                <p className="font-bold text-sm">{user.name}</p>
+                <p className="text-[10px] text-white/40 uppercase font-medium">CPF: {formatCPF(user.cpf)}</p>
+                <p className="text-[10px] text-primary/70 uppercase font-semibold mt-1">{user.role === 'admin' ? 'Admin' : 'Vendedor'}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <select
+                  value={user.role}
+                  onChange={(e) => handleRoleChange(user.id, e.target.value as UserRole)}
+                  className="bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-[10px]"
+                  disabled={!canManage || user.id === currentUser?.id}
+                >
+                  <option value="seller">Vendedor</option>
+                  <option value="admin">Admin</option>
+                </select>
+                <button
+                  onClick={() => handleResetPassword(user.id)}
+                  disabled={!canManage}
+                  className="text-primary text-[10px] font-bold uppercase tracking-widest"
+                >
+                  Resetar senha
+                </button>
+              </div>
+            </div>
+          ))}
+          {sortedUsers.length === 0 && (
+            <div className="text-center text-white/40 text-sm">Nenhum usuário cadastrado.</div>
+          )}
+        </section>
+      </main>
+
+      <BottomNav activePage="users" navigate={navigate} currentUserRole={currentUser?.role} />
+    </div>
+  );
+};
+
+export default Users;

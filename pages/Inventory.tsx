@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { AppState, Product } from '../types';
+import { AppState, Product, UserRole } from '../types';
 import BottomNav from '../components/BottomNav';
 
 interface InventoryProps {
@@ -9,9 +9,10 @@ interface InventoryProps {
   products: Product[];
   privacyMode: boolean;
   setPrivacyMode: (v: boolean) => void;
+  currentUserRole?: UserRole | null;
 }
 
-const Inventory: React.FC<InventoryProps> = ({ navigate, products, privacyMode, setPrivacyMode }) => {
+const Inventory: React.FC<InventoryProps> = ({ navigate, products, privacyMode, setPrivacyMode, currentUserRole }) => {
   const [search, setSearch] = useState('');
 
   const filteredProducts = products.filter(p => 
@@ -101,7 +102,7 @@ const Inventory: React.FC<InventoryProps> = ({ navigate, products, privacyMode, 
         </button>
       </div>
 
-      <BottomNav activePage="inventory" navigate={navigate} />
+      <BottomNav activePage="inventory" navigate={navigate} currentUserRole={currentUserRole} />
     </div>
   );
 };

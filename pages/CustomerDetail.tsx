@@ -1,17 +1,17 @@
 
 import React from 'react';
-import { AppState, Order, Customer } from '../types';
-import { MOCK_PRODUCTS } from '../constants';
+import { AppState, Order, Customer, Product } from '../types';
 
 interface CustomerDetailProps {
   navigate: (page: AppState) => void;
   customer?: Customer;
   order?: Order;
+  products: Product[];
   privacyMode: boolean;
   setPrivacyMode: (v: boolean) => void;
 }
 
-const CustomerDetail: React.FC<CustomerDetailProps> = ({ navigate, customer, order, privacyMode, setPrivacyMode }) => {
+const CustomerDetail: React.FC<CustomerDetailProps> = ({ navigate, customer, order, products, privacyMode, setPrivacyMode }) => {
   if (!customer || !order) {
     return (
       <div className="h-screen flex items-center justify-center flex-col gap-4">
@@ -76,7 +76,7 @@ const CustomerDetail: React.FC<CustomerDetailProps> = ({ navigate, customer, ord
           
           <div className="space-y-3">
             {order.items.map((item, idx) => {
-              const product = MOCK_PRODUCTS.find(p => p.id === item.productId);
+              const product = products.find(p => p.id === item.productId);
               return (
                 <div key={idx} className="bg-white/5 border border-white/5 rounded-2xl p-4 flex items-center justify-between active:bg-white/10 transition-colors">
                   <div className="flex items-center gap-3">

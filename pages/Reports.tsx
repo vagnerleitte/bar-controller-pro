@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { AppState, Order } from '../types';
+import { AppState, Order, UserRole } from '../types';
 import BottomNav from '../components/BottomNav';
 import { getBarInsights } from '../services/geminiService';
 
@@ -10,9 +10,10 @@ interface ReportsProps {
   orders: Order[];
   privacyMode: boolean;
   setPrivacyMode: (v: boolean) => void;
+  currentUserRole?: UserRole | null;
 }
 
-const Reports: React.FC<ReportsProps> = ({ navigate, orders, privacyMode, setPrivacyMode }) => {
+const Reports: React.FC<ReportsProps> = ({ navigate, orders, privacyMode, setPrivacyMode, currentUserRole }) => {
   const [insight, setInsight] = useState('Carregando insight gerencial...');
 
   const metrics = useMemo(() => {
@@ -126,7 +127,7 @@ const Reports: React.FC<ReportsProps> = ({ navigate, orders, privacyMode, setPri
         </section>
       </main>
 
-      <BottomNav activePage="reports" navigate={navigate} />
+      <BottomNav activePage="reports" navigate={navigate} currentUserRole={currentUserRole} />
     </div>
   );
 };
