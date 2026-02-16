@@ -53,6 +53,8 @@ const LockScreen: React.FC<LockScreenProps> = ({ onAuthSuccess }) => {
               <label className="text-[10px] text-white/50 uppercase font-semibold tracking-widest">CPF</label>
               <input
                 type="text"
+                name="username"
+                autoComplete="username"
                 value={formatCPF(cpf)}
                 onChange={(e) => setCpf(e.target.value)}
                 placeholder="000.000.000-00"
@@ -63,6 +65,8 @@ const LockScreen: React.FC<LockScreenProps> = ({ onAuthSuccess }) => {
               <label className="text-[10px] text-white/50 uppercase font-semibold tracking-widest">Senha</label>
               <input
                 type="password"
+                name="current-password"
+                autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••"

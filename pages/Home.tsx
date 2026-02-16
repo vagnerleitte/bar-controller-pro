@@ -1,6 +1,7 @@
 
 import React, { useMemo, useState } from 'react';
-import { AppState, Order, Customer, Product, User } from '../types';
+import { AppState, Order, Customer, Product, User, MonthlyAccount } from '../types';
+import { getMonthlyBalance } from '../utils/monthly';
 import BottomNav from '../components/BottomNav';
 import TopMenu from '../components/TopMenu';
 
@@ -9,27 +10,24 @@ interface HomeProps {
   orders: Order[];
   customers: Customer[];
   products: Product[];
+  monthlyAccounts: MonthlyAccount[];
+  onForceSeedSync: () => Promise<void>;
   onSelectTopProduct: (productId: string) => void;
   privacyMode: boolean;
   setPrivacyMode: (v: boolean) => void;
   currentUser: User | null;
 }
 
-const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, onSelectTopProduct, privacyMode, setPrivacyMode, currentUser }) => {
+const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, monthlyAccounts, onForceSeedSync, onSelectTopProduct, privacyMode, setPrivacyMode, currentUser }) => {
   const [orderSearch, setOrderSearch] = useState('');
   const [showSearch, setShowSearch] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [tableFilter, setTableFilter] = useState('');
   const [customerFilter, setCustomerFilter] = useState('');
+  const [syncingSeed, setSyncingSeed] = useState(false);
+  const [seedToast, setSeedToast] = useState<string | null>(null);
 
-  const totalBalance = orders.reduce((acc, order) => {
-    const consumption = order.items.reduce((sum, item) => sum + (item.priceAtSale * item.quantity), 0);
-    const paid = order.payments.reduce((sum, p) => sum + p.amount, 0);
-    return acc + (consumption - paid);
-  }, 0);
-
-  const openOrders = orders.filter(order => order.status === 'open');
-  const filteredOrders = openOrders.filter(order => {
+  const filteredOrders = orders.filter(order => {
     const customer = customers.find(c => c.id === order.customerId);
     const name = customer?.name?.toLowerCase() || '';
     const table = (order.table || '').toLowerCase();
@@ -42,6 +40,12 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, onSe
     const matchesCustomer = customerF.length === 0 || name.includes(customerF);
     return matchesSearch && matchesTable && matchesCustomer;
   });
+  const filteredOpenOrders = filteredOrders.filter(order => order.status === 'open');
+  const filteredClosedOrders = filteredOrders.filter(order => order.status === 'closed');
+  const monthlyOpen = monthlyAccounts
+    .map(account => ({ account, balance: getMonthlyBalance(account) }))
+    .filter(entry => entry.balance > 0)
+    .slice(0, 6);
 
   const topProducts = useMemo(() => {
     const counter = new Map<string, number>();
@@ -65,6 +69,20 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, onSe
     }
     return list.slice(0, 12);
   }, [orders, products]);
+
+  const handleForceSeedSync = async () => {
+    const confirmed = confirm('Isso vai substituir clientes, produtos, comandas e mensalistas pelos dados de seed. Continuar?');
+    if (!confirmed) return;
+    setSyncingSeed(true);
+    try {
+      await onForceSeedSync();
+      setSeedToast('Seed sincronizado com sucesso.');
+    } catch {
+      setSeedToast('Falha ao sincronizar seed.');
+    } finally {
+      setSyncingSeed(false);
+    }
+  };
 
   return (
     <div className="pb-32">
@@ -92,6 +110,14 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, onSe
                 <span className="material-icons-round text-xl">admin_panel_settings</span>
               </button>
             )}
+            <button
+              onClick={handleForceSeedSync}
+              disabled={syncingSeed}
+              className="w-10 h-10 flex items-center justify-center rounded-full bg-primary/10 border border-primary/20 text-primary disabled:opacity-50"
+              title="Forçar sync seed"
+            >
+              <span className="material-icons-round text-xl">{syncingSeed ? 'sync' : 'sync_alt'}</span>
+            </button>
             <button className="w-10 h-10 flex items-center justify-center rounded-full bg-primary/10 border border-primary/20 text-primary">
               <span className="material-icons-round text-xl">notifications</span>
             </button>
@@ -103,29 +129,32 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, onSe
       </header>
 
       <main className="px-5">
-        {/* Financial Summary */}
-        <section className="mt-6">
-          <div className="bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 rounded-2xl p-6 relative overflow-hidden shadow-2xl">
-            <div className="absolute -right-8 -top-8 w-32 h-32 bg-primary/10 rounded-full blur-3xl"></div>
-            <div className="flex justify-between items-start mb-4">
-              <p className="text-primary font-semibold text-sm">Saldo Total a Receber</p>
-              <span className="material-icons-round text-primary/40">account_balance_wallet</span>
-            </div>
-            <div className="flex items-baseline gap-1">
-              <span className="text-xl font-bold text-primary/60">R$</span>
-              <h2 className={`text-4xl font-extrabold text-white tracking-tight ${privacyMode ? 'privacy-blur' : ''}`}>
-                {totalBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-              </h2>
-            </div>
-            <div className="mt-4 flex items-center gap-2 text-xs text-primary/80 bg-primary/5 w-fit px-3 py-1 rounded-full border border-primary/10">
-              <span className="material-icons-round text-sm">trending_up</span>
-              <span>+12% que a última semana</span>
-            </div>
-          </div>
+        <section className="mt-6 grid grid-cols-2 gap-3">
+          <button
+            onClick={() => navigate('sale')}
+            className="h-16 rounded-2xl bg-primary text-background-dark font-black text-sm uppercase tracking-widest"
+          >
+            Nova venda
+          </button>
+          <button
+            onClick={() => navigate('customers')}
+            className="h-16 rounded-2xl bg-white/10 border border-white/20 text-white font-black text-sm uppercase tracking-widest"
+          >
+            Abrir comanda
+          </button>
+        </section>
+
+        <section className="mt-4">
+          <button
+            onClick={() => navigate('ig_feed')}
+            className="text-xs text-primary/80 uppercase tracking-widest font-bold"
+          >
+            Ajuda rápida
+          </button>
         </section>
 
         {/* Top Products Mini Grid */}
-        <section className="mt-10">
+        <section className="mt-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold">Mais Vendidos</h3>
           </div>
@@ -156,7 +185,7 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, onSe
         {/* Active Accounts Grid */}
         <section className="mt-10">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold">Comandas Ativas</h3>
+            <h3 className="text-lg font-bold">Comandas abertas</h3>
             <div className="flex items-center gap-2">
               <div className={`relative overflow-hidden transition-all duration-200 ${showSearch ? 'w-44' : 'w-0'}`}>
                 <input
@@ -210,7 +239,7 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, onSe
             </div>
           )}
           <div className="grid grid-cols-2 gap-4">
-            {filteredOrders.map(order => {
+            {filteredOpenOrders.map(order => {
               const customer = customers.find(c => c.id === order.customerId);
               const consumption = order.items.reduce((acc, i) => acc + (i.priceAtSale * i.quantity), 0);
               const paid = order.payments.reduce((acc, p) => acc + p.amount, 0);
@@ -239,10 +268,81 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, onSe
                 </div>
               );
             })}
-            {filteredOrders.length === 0 && (
+            {filteredOpenOrders.length === 0 && (
               <div className="col-span-2 text-center text-white/40 text-sm py-6">
                 Nenhuma comanda aberta encontrada.
               </div>
+            )}
+          </div>
+        </section>
+
+        <section className="mt-10">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold">Comandas Finalizadas</h3>
+            <span className="text-[10px] bg-white/5 px-2 py-1 rounded-full font-bold text-white/50 uppercase tracking-widest">
+              {filteredClosedOrders.length}
+            </span>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            {filteredClosedOrders.map(order => {
+              const customer = customers.find(c => c.id === order.customerId);
+              const consumption = order.items.reduce((acc, i) => acc + (i.priceAtSale * i.quantity), 0);
+              return (
+                <div
+                  key={order.id}
+                  className="bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-col justify-between h-36 opacity-90"
+                >
+                  <div>
+                    <div className="flex justify-between items-start">
+                      <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">#{order.table || '00'}</span>
+                      <span className="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px] shadow-primary/50"></span>
+                    </div>
+                    <h4 className="mt-2 font-bold text-sm truncate">{customer?.name || 'Cliente Anon.'}</h4>
+                    <p className="text-[10px] text-white/35 uppercase font-medium">Comanda encerrada</p>
+                  </div>
+                  <div className="mt-auto">
+                    <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest">Total consumido</p>
+                    <p className={`text-lg font-extrabold text-white leading-none ${privacyMode ? 'privacy-blur' : ''}`}>
+                      R$ {consumption.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+            {filteredClosedOrders.length === 0 && (
+              <div className="col-span-2 text-center text-white/40 text-sm py-6">
+                Nenhuma comanda finalizada encontrada.
+              </div>
+            )}
+          </div>
+        </section>
+
+        <section className="mt-10">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold">Mensalistas em aberto</h3>
+            <button
+              onClick={() => navigate('monthly_accounts')}
+              className="text-[10px] text-primary uppercase tracking-widest font-bold"
+            >
+              Ver todos
+            </button>
+          </div>
+          <div className="space-y-3">
+            {monthlyOpen.map(({ account, balance }) => {
+              const customer = customers.find(c => c.id === account.customerId);
+              return (
+                <button
+                  key={account.id}
+                  onClick={() => navigate('monthly_detail', account.customerId)}
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center justify-between text-left"
+                >
+                  <p className="text-sm font-bold">{customer?.name || 'Cliente'}</p>
+                  <p className={`text-sm font-extrabold ${privacyMode ? 'privacy-blur' : ''}`}>R$ {balance.toFixed(2)}</p>
+                </button>
+              );
+            })}
+            {monthlyOpen.length === 0 && (
+              <div className="text-center text-white/40 text-sm py-2">Nenhum mensalista em aberto.</div>
             )}
           </div>
         </section>
@@ -254,6 +354,13 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, onSe
       >
         <span className="material-icons-round text-3xl font-bold">add</span>
       </button>
+
+      {seedToast && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[240] bg-black/80 border border-white/10 rounded-xl px-4 py-2 text-xs font-bold">
+          {seedToast}
+          <button className="ml-3 text-primary" onClick={() => setSeedToast(null)}>OK</button>
+        </div>
+      )}
 
       <BottomNav activePage="home" navigate={navigate} currentUserRole={currentUser?.role} />
     </div>

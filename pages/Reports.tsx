@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { AppState, Order, UserRole } from '../types';
+import { AppState, MonthlyAccount, Order, UserRole } from '../types';
+import { getMonthlyBalance } from '../utils/monthly';
 import BottomNav from '../components/BottomNav';
 import { getBarInsights } from '../services/geminiService';
 
@@ -8,30 +9,46 @@ interface ReportsProps {
   // Fix: navigate function signature should accept optional customerId for consistency
   navigate: (page: AppState, customerId?: string | null) => void;
   orders: Order[];
+  monthlyAccounts: MonthlyAccount[];
   privacyMode: boolean;
   setPrivacyMode: (v: boolean) => void;
   currentUserRole?: UserRole | null;
 }
 
-const Reports: React.FC<ReportsProps> = ({ navigate, orders, privacyMode, setPrivacyMode, currentUserRole }) => {
+const Reports: React.FC<ReportsProps> = ({ navigate, orders, monthlyAccounts, privacyMode, setPrivacyMode, currentUserRole }) => {
   const [insight, setInsight] = useState('Carregando insight gerencial...');
 
   const metrics = useMemo(() => {
-    const totalConsumo = orders.reduce((acc, o) => 
+    const closedOrders = orders.filter(o => o.status === 'closed');
+    const openOrders = orders.filter(o => o.status !== 'closed');
+
+    const totalConsumo = closedOrders.reduce((acc, o) =>
       acc + o.items.reduce((sum, i) => sum + (i.priceAtSale * i.quantity), 0), 0
     );
-    const totalPago = orders.reduce((acc, o) => 
+    const totalPago = closedOrders.reduce((acc, o) =>
       acc + o.payments.reduce((sum, p) => sum + p.amount, 0), 0
     );
-    const emAberto = totalConsumo - totalPago;
-    
+    const emAbertoComandas = openOrders.reduce((acc, o) => {
+      const consumo = o.items.reduce((sum, i) => sum + (i.priceAtSale * i.quantity), 0);
+      const pago = o.payments.reduce((sum, p) => sum + p.amount, 0);
+      return acc + Math.max(0, consumo - pago);
+    }, 0);
+    const emAbertoMensalistas = monthlyAccounts.reduce((acc, account) => {
+      const balance = getMonthlyBalance(account);
+      return acc + (balance > 0 ? balance : 0);
+    }, 0);
+    const paymentsByMethod = totalOrdersPaymentsByMethod(closedOrders);
+
     return {
       consumo: totalConsumo,
       pagamentos: totalPago,
-      emAberto: emAberto,
-      margem: totalConsumo * 0.42 // Estimativa fictícia de margem
+      emAbertoComandas,
+      emAbertoMensalistas,
+      emAbertoTotal: emAbertoComandas + emAbertoMensalistas,
+      margem: totalConsumo * 0.42,
+      byMethod: paymentsByMethod
     };
-  }, [orders]);
+  }, [orders, monthlyAccounts]);
 
   useEffect(() => {
     getBarInsights(metrics).then(setInsight);
@@ -82,7 +99,7 @@ const Reports: React.FC<ReportsProps> = ({ navigate, orders, privacyMode, setPri
           <div className="bg-white/5 border-l-4 border-orange-500 border-white/10 p-5 rounded-2xl relative overflow-hidden group">
             <span className="text-xs font-bold text-white/40 uppercase tracking-widest">Em Aberto</span>
             <div className={`mt-2 text-2xl font-extrabold text-orange-500 ${privacyMode ? 'privacy-blur' : ''}`}>
-              R$ {metrics.emAberto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              R$ {metrics.emAbertoTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </div>
           </div>
           <div className="bg-primary/10 border border-primary/20 p-5 rounded-2xl relative overflow-hidden group">
@@ -106,20 +123,31 @@ const Reports: React.FC<ReportsProps> = ({ navigate, orders, privacyMode, setPri
         </section>
 
         <section className="bg-white/5 border border-white/10 p-6 rounded-3xl space-y-6">
+          <div className="text-xs text-white/70 space-y-1">
+            <p>Em aberto (comandas): R$ {metrics.emAbertoComandas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+            <p>Em aberto (mensalistas): R$ {metrics.emAbertoMensalistas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+          </div>
           <h3 className="font-bold text-lg">Distribuição</h3>
           <div className="space-y-5">
             {[
-              { label: 'Pix', color: 'bg-primary', perc: '65%' },
-              { label: 'Cartão', color: 'bg-blue-500', perc: '25%' },
-              { label: 'Dinheiro', color: 'bg-yellow-500', perc: '10%' }
+              { label: 'Pix', color: 'bg-primary', value: metrics.byMethod.PIX },
+              { label: 'Cartão', color: 'bg-blue-500', value: metrics.byMethod['Cartão'] },
+              { label: 'Dinheiro', color: 'bg-yellow-500', value: metrics.byMethod.Dinheiro }
             ].map(item => (
               <div key={item.label} className="space-y-2">
                 <div className="flex justify-between text-sm font-bold">
                   <span>{item.label}</span>
-                  <span>{item.perc}</span>
+                  <span>
+                    {metrics.pagamentos > 0
+                      ? `${Math.round((item.value / metrics.pagamentos) * 100)}%`
+                      : '0%'}
+                  </span>
                 </div>
                 <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
-                  <div className={`h-full ${item.color} rounded-full`} style={{ width: item.perc }}></div>
+                  <div
+                    className={`h-full ${item.color} rounded-full`}
+                    style={{ width: `${metrics.pagamentos > 0 ? (item.value / metrics.pagamentos) * 100 : 0}%` }}
+                  ></div>
                 </div>
               </div>
             ))}
@@ -133,3 +161,19 @@ const Reports: React.FC<ReportsProps> = ({ navigate, orders, privacyMode, setPri
 };
 
 export default Reports;
+
+function totalOrdersPaymentsByMethod(orders: Order[]) {
+  return orders.reduce(
+    (acc, order) => {
+      order.payments.forEach(payment => {
+        acc[payment.method] += payment.amount;
+      });
+      return acc;
+    },
+    {
+      PIX: 0,
+      Dinheiro: 0,
+      Cartão: 0
+    } as Record<'PIX' | 'Dinheiro' | 'Cartão', number>
+  );
+}

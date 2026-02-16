@@ -8,6 +8,7 @@ interface MonthlyDetailProps {
   customer?: Customer;
   products: Product[];
   privacyMode: boolean;
+  setPrivacyMode: (value: boolean) => void;
   onAddItem: (productId: string, quantity: number) => void;
   onPayment: (amount: number, method: 'PIX' | 'Dinheiro' | 'Cartão') => void;
   getBalance: (account: MonthlyAccount) => number;
@@ -21,6 +22,7 @@ const MonthlyDetail: React.FC<MonthlyDetailProps> = ({
   customer,
   products,
   privacyMode,
+  setPrivacyMode,
   onAddItem,
   onPayment,
   getBalance,
@@ -31,6 +33,8 @@ const MonthlyDetail: React.FC<MonthlyDetailProps> = ({
   const [quantity, setQuantity] = useState(1);
   const [paymentAmount, setPaymentAmount] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'PIX' | 'Dinheiro' | 'Cartão'>('PIX');
+  const [showHowItWorks, setShowHowItWorks] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
 
   if (!account || !customer) {
     return (
@@ -55,21 +59,23 @@ const MonthlyDetail: React.FC<MonthlyDetailProps> = ({
   const handleAddItem = () => {
     if (!selectedProduct) return;
     if (blocked) {
-      alert('Conta bloqueada. Faça um pagamento para desbloquear.');
+      setToast('Conta bloqueada. Faça um pagamento para desbloquear.');
       return;
     }
     const total = selectedProduct.price * quantity;
     if (total > available) {
-      alert('Limite mensal excedido.');
+      setToast('Limite mensal excedido.');
       return;
     }
     onAddItem(selectedProductId, quantity);
+    setToast('Item lançado com sucesso.');
   };
 
   const handlePayment = (amount: number) => {
     if (amount <= 0) return;
     onPayment(amount, paymentMethod);
     setPaymentAmount('');
+    setToast('Pagamento registrado.');
   };
 
   return (
@@ -86,10 +92,10 @@ const MonthlyDetail: React.FC<MonthlyDetailProps> = ({
             </div>
           </div>
           <button
-            onClick={() => navigate('monthly_accounts')}
-            className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-white/60"
+            onClick={() => setPrivacyMode(!privacyMode)}
+            className="w-10 h-10 flex items-center justify-center rounded-full bg-primary/10 text-primary border border-primary/20"
           >
-            <span className="material-icons-round">close</span>
+            <span className="material-icons-round">{privacyMode ? 'visibility' : 'visibility_off'}</span>
           </button>
         </div>
       </header>
@@ -119,6 +125,24 @@ const MonthlyDetail: React.FC<MonthlyDetailProps> = ({
             Conta bloqueada. Pague ao menos 50% do saldo (R$ {requiredUnlock.toFixed(2)}) para desbloquear.
           </div>
         )}
+
+        <section className="bg-white/5 border border-white/10 p-4 rounded-2xl">
+          <button
+            onClick={() => setShowHowItWorks(v => !v)}
+            className="w-full flex items-center justify-between"
+          >
+            <h3 className="font-bold text-sm uppercase tracking-widest text-white/70">Como funciona</h3>
+            <span className="material-icons-round text-white/60">{showHowItWorks ? 'expand_less' : 'expand_more'}</span>
+          </button>
+          {showHowItWorks && (
+            <div className="mt-3 text-xs text-white/70 space-y-1">
+              <p>Limite: teto mensal contratado.</p>
+              <p>Saldo: total consumido menos pagamentos.</p>
+              <p>Disponível: limite restante com redutor de 10% quando há saldo aberto.</p>
+              <p>Bloqueio: após 28 dias com saldo em aberto, precisa pagar 50% para desbloquear.</p>
+            </div>
+          )}
+        </section>
 
         <section className="bg-white/5 border border-white/10 p-4 rounded-2xl space-y-4">
           <h3 className="font-bold text-sm uppercase tracking-widest text-white/60">Adicionar Itens</h3>
@@ -154,6 +178,29 @@ const MonthlyDetail: React.FC<MonthlyDetailProps> = ({
         </section>
 
         <section className="bg-white/5 border border-white/10 p-4 rounded-2xl space-y-4">
+          <h3 className="font-bold text-sm uppercase tracking-widest text-white/60">Itens</h3>
+          <div className="space-y-2">
+            {account.items.map(item => {
+              const product = products.find(p => p.id === item.productId);
+              return (
+                <div key={item.id} className="flex items-center justify-between bg-white/5 rounded-xl p-3">
+                  <div>
+                    <p className="text-sm font-bold">{product?.name || 'Item'}</p>
+                    <p className="text-[10px] text-white/40 uppercase font-medium">{item.quantity} un • R$ {item.priceAtSale.toFixed(2)}</p>
+                  </div>
+                  <div className={`text-sm font-extrabold ${privacyMode ? 'privacy-blur' : ''}`}>
+                    R$ {(item.quantity * item.priceAtSale).toFixed(2)}
+                  </div>
+                </div>
+              );
+            })}
+            {account.items.length === 0 && (
+              <div className="text-center text-white/40 text-sm">Nenhum item lançado.</div>
+            )}
+          </div>
+        </section>
+
+        <section className="bg-white/5 border border-white/10 p-4 rounded-2xl space-y-4">
           <h3 className="font-bold text-sm uppercase tracking-widest text-white/60">Pagamento</h3>
           <div className="grid grid-cols-2 gap-3">
             <button
@@ -169,6 +216,14 @@ const MonthlyDetail: React.FC<MonthlyDetailProps> = ({
               Pagar Total
             </button>
           </div>
+          {blocked && (
+            <button
+              onClick={() => setPaymentAmount(requiredUnlock.toFixed(2))}
+              className="w-full h-10 rounded-xl bg-white/5 border border-white/10 text-primary font-bold text-xs uppercase tracking-widest"
+            >
+              Preencher mínimo para desbloqueio
+            </button>
+          )}
           <div className="flex items-center gap-3">
             <input
               type="number"
@@ -198,29 +253,6 @@ const MonthlyDetail: React.FC<MonthlyDetailProps> = ({
         </section>
 
         <section className="bg-white/5 border border-white/10 p-4 rounded-2xl space-y-4">
-          <h3 className="font-bold text-sm uppercase tracking-widest text-white/60">Itens</h3>
-          <div className="space-y-2">
-            {account.items.map(item => {
-              const product = products.find(p => p.id === item.productId);
-              return (
-                <div key={item.id} className="flex items-center justify-between bg-white/5 rounded-xl p-3">
-                  <div>
-                    <p className="text-sm font-bold">{product?.name || 'Item'}</p>
-                    <p className="text-[10px] text-white/40 uppercase font-medium">{item.quantity} un • R$ {item.priceAtSale.toFixed(2)}</p>
-                  </div>
-                  <div className={`text-sm font-extrabold ${privacyMode ? 'privacy-blur' : ''}`}>
-                    R$ {(item.quantity * item.priceAtSale).toFixed(2)}
-                  </div>
-                </div>
-              );
-            })}
-            {account.items.length === 0 && (
-              <div className="text-center text-white/40 text-sm">Nenhum item lançado.</div>
-            )}
-          </div>
-        </section>
-
-        <section className="bg-white/5 border border-white/10 p-4 rounded-2xl space-y-4">
           <h3 className="font-bold text-sm uppercase tracking-widest text-white/60">Pagamentos</h3>
           <div className="space-y-2">
             {account.payments.map(payment => (
@@ -243,6 +275,12 @@ const MonthlyDetail: React.FC<MonthlyDetailProps> = ({
           </div>
         </section>
       </main>
+      {toast && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[240] bg-black/80 border border-white/10 rounded-xl px-4 py-2 text-xs font-bold">
+          {toast}
+          <button className="ml-3 text-primary" onClick={() => setToast(null)}>OK</button>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import Dexie, { Table } from 'dexie';
-import { Customer, MonthlyAccount, Order, Product, User } from '../types';
+import { Customer, InventoryAdjustment, MonthlyAccount, Order, Product, User } from '../types';
 import { MOCK_CUSTOMERS, MOCK_ORDERS, MOCK_PRODUCTS } from '../constants';
 
 class BarControllerDB extends Dexie {
@@ -8,15 +8,17 @@ class BarControllerDB extends Dexie {
   orders!: Table<Order, string>;
   monthlyAccounts!: Table<MonthlyAccount, string>;
   users!: Table<User, string>;
+  inventoryAdjustments!: Table<InventoryAdjustment, string>;
 
   constructor() {
     super('bar-controller-pro');
-    this.version(2).stores({
+    this.version(3).stores({
       customers: 'id, name, phone, updatedAt',
       products: 'id, name, sku, updatedAt',
       orders: 'id, customerId, status, updatedAt',
       monthlyAccounts: 'id, customerId, updatedAt',
-      users: 'id, cpf, role, updatedAt'
+      users: 'id, cpf, role, updatedAt',
+      inventoryAdjustments: 'id, productId, reason, createdAt'
     });
   }
 }
@@ -138,4 +140,46 @@ export async function loadAll() {
     db.users.toArray()
   ]);
   return { customers, products, orders, monthlyAccounts, users };
+}
+
+export async function forceSyncSeedData() {
+  const now = Date.now();
+  const customers: Customer[] = MOCK_CUSTOMERS.map(c => ({
+    ...c,
+    createdAt: c.createdAt ?? now,
+    updatedAt: now
+  }));
+  const products: Product[] = MOCK_PRODUCTS.map(p => ({
+    ...p,
+    createdAt: p.createdAt ?? now,
+    updatedAt: now
+  }));
+  const orders: Order[] = MOCK_ORDERS.map(o => ({
+    ...o,
+    updatedAt: now
+  }));
+  const monthlyAccounts: MonthlyAccount[] = customers
+    .filter(c => typeof c.monthlyLimit === 'number')
+    .map(c => ({
+      id: `m_${c.id}`,
+      customerId: c.id,
+      limit: c.monthlyLimit as number,
+      cycleStart: new Date(),
+      items: [],
+      payments: [],
+      overdueUnlocked: false,
+      createdAt: now,
+      updatedAt: now
+    }));
+
+  await db.transaction('rw', db.customers, db.products, db.orders, db.monthlyAccounts, async () => {
+    await db.customers.clear();
+    await db.products.clear();
+    await db.orders.clear();
+    await db.monthlyAccounts.clear();
+    await db.customers.bulkPut(customers);
+    await db.products.bulkPut(products);
+    await db.orders.bulkPut(orders);
+    await db.monthlyAccounts.bulkPut(monthlyAccounts);
+  });
 }

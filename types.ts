@@ -4,8 +4,15 @@ export interface Product {
   name: string;
   sku: string;
   price: number;
+  cost?: number;
   category: string;
+  subcategory?: string;
   subgroup?: string;
+  unit?: 'un' | 'pct' | 'cx' | 'garrafa' | 'lata' | 'ml' | 'litro' | 'kg' | 'par';
+  location?: string;
+  stock?: number;
+  minStock?: number;
+  idealStock?: number;
   image: string;
   status: 'active' | 'inactive' | 'fractioned';
   createdAt?: number;
@@ -39,6 +46,7 @@ export interface Order {
   items: OrderItem[];
   payments: Payment[];
   status: 'open' | 'payment' | 'closed';
+  isQuickSale?: boolean;
   createdAt: Date;
   updatedAt?: number;
 }
@@ -80,6 +88,15 @@ export interface MonthlyAccount {
   updatedAt?: number;
 }
 
+export interface InventoryAdjustment {
+  id: string;
+  productId: string;
+  delta: number;
+  reason: 'IN' | 'LOSS';
+  note?: string;
+  createdAt: Date;
+}
+
 export type UserRole = 'admin' | 'seller';
 
 export interface User {
@@ -96,6 +113,8 @@ export interface User {
 export type AppState =
   | 'lock'
   | 'home'
+  | 'sales'
+  | 'ig_feed'
   | 'inventory'
   | 'reports'
   | 'sale'

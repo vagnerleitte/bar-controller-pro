@@ -12,9 +12,10 @@ interface BottomNavProps {
 const BottomNav: React.FC<BottomNavProps> = ({ activePage, navigate, currentUserRole }) => {
   const tabs: { id: AppState; label: string; icon: string }[] = [
     { id: 'home', label: 'Início', icon: 'home' },
+    { id: 'sales', label: 'Vendas', icon: 'point_of_sale' },
     { id: 'monthly_accounts', label: 'Mensal', icon: 'event_repeat' },
     { id: 'inventory', label: 'Estoque', icon: 'inventory_2' },
-    { id: 'reports', label: 'Relatórios', icon: 'analytics' },
+    ...(currentUserRole === 'admin' ? [{ id: 'reports' as AppState, label: 'Relatórios', icon: 'analytics' }] : []),
     ...(currentUserRole === 'admin' ? [{ id: 'users' as AppState, label: 'Usuários', icon: 'admin_panel_settings' }] : []),
     { id: 'lock', label: 'Sair', icon: 'logout' }
   ];
