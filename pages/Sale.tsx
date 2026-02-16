@@ -2,6 +2,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { AppState, Product, Order, Customer, MonthlyAccount } from '../types';
 import { getMonthlyAvailableLimit, getMonthlyBalance } from '../utils/monthly';
+import AppLogo from '../components/AppLogo';
 
 interface SaleProps {
   // Fix: navigate function signature should accept optional customerId to match App.tsx definition
@@ -245,7 +246,10 @@ const Sale: React.FC<SaleProps> = ({
           <button onClick={() => navigate('home')} className="text-primary active:scale-90 transition-transform">
             <span className="material-icons-round text-3xl">chevron_left</span>
           </button>
-          <h1 className="text-lg font-extrabold tracking-tight">Nova Venda</h1>
+          <div className="flex items-center gap-3">
+            <AppLogo className="w-8 h-8" />
+            <h1 className="text-lg font-extrabold tracking-tight">Nova Venda</h1>
+          </div>
           <button 
             onClick={() => setShowScanner(true)}
             className="w-10 h-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary"

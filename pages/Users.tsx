@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { AppState, User, UserRole } from '../types';
 import BottomNav from '../components/BottomNav';
 import { createUser, formatCPF, normalizeCPF, resetUserPassword, updateUserRole } from '../services/auth';
+import AppLogo from '../components/AppLogo';
 
 interface UsersProps {
   navigate: (page: AppState, customerId?: string | null) => void;
@@ -32,7 +33,13 @@ const Users: React.FC<UsersProps> = ({ navigate, users, setUsers, currentUser })
       return;
     }
     setSaving(true);
-    const { user, error } = await createUser({ name, cpf, role, password });
+    const { user, error } = await createUser({
+      name,
+      cpf,
+      role,
+      password,
+      tenantId: currentUser?.tenantId || 't1'
+    });
     setSaving(false);
     if (!user) {
       setError(error || 'Falha ao criar usuário.');
@@ -66,7 +73,10 @@ const Users: React.FC<UsersProps> = ({ navigate, users, setUsers, currentUser })
       <header className="sticky top-0 z-50 bg-background-dark/80 backdrop-blur-xl border-b border-primary/10 safe-area-top">
         <div className="px-5 py-4 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-extrabold tracking-tight">Usuários</h1>
+            <div className="flex items-center gap-3">
+              <AppLogo className="w-9 h-9" />
+              <h1 className="text-2xl font-extrabold tracking-tight">Usuários</h1>
+            </div>
             <p className="text-xs text-primary/60 font-medium uppercase tracking-widest mt-0.5">Admin e vendedores</p>
           </div>
           <button

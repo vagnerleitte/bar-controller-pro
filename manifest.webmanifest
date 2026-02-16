@@ -1,0 +1,17 @@
+{
+  "name": "Bar Controller Pro",
+  "short_name": "Bar Controller",
+  "description": "Caderninho do Fiado para gestão de bares e conveniências.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#102218",
+  "theme_color": "#102218",
+  "icons": [
+    {
+      "src": "/app-logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

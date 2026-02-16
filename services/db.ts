@@ -2,6 +2,8 @@ import Dexie, { Table } from 'dexie';
 import { Customer, InventoryAdjustment, MonthlyAccount, Order, Product, User } from '../types';
 import { MOCK_CUSTOMERS, MOCK_ORDERS, MOCK_PRODUCTS } from '../constants';
 
+export const DEFAULT_TENANT_ID = 't1';
+
 class BarControllerDB extends Dexie {
   customers!: Table<Customer, string>;
   products!: Table<Product, string>;
@@ -12,13 +14,32 @@ class BarControllerDB extends Dexie {
 
   constructor() {
     super('bar-controller-pro');
-    this.version(3).stores({
-      customers: 'id, name, phone, updatedAt',
-      products: 'id, name, sku, updatedAt',
-      orders: 'id, customerId, status, updatedAt',
-      monthlyAccounts: 'id, customerId, updatedAt',
-      users: 'id, cpf, role, updatedAt',
-      inventoryAdjustments: 'id, productId, reason, createdAt'
+    this.version(4).stores({
+      customers: 'id, tenantId, name, phone, updatedAt',
+      products: 'id, tenantId, name, sku, updatedAt',
+      orders: 'id, tenantId, customerId, status, updatedAt',
+      monthlyAccounts: 'id, tenantId, customerId, updatedAt',
+      users: 'id, tenantId, cpf, role, updatedAt',
+      inventoryAdjustments: 'id, tenantId, productId, reason, createdAt'
+    }).upgrade(async tx => {
+      await tx.table('customers').toCollection().modify((item: Customer) => {
+        item.tenantId = item.tenantId || DEFAULT_TENANT_ID;
+      });
+      await tx.table('products').toCollection().modify((item: Product) => {
+        item.tenantId = item.tenantId || DEFAULT_TENANT_ID;
+      });
+      await tx.table('orders').toCollection().modify((item: Order) => {
+        item.tenantId = item.tenantId || DEFAULT_TENANT_ID;
+      });
+      await tx.table('monthlyAccounts').toCollection().modify((item: MonthlyAccount) => {
+        item.tenantId = item.tenantId || DEFAULT_TENANT_ID;
+      });
+      await tx.table('users').toCollection().modify((item: User) => {
+        item.tenantId = item.tenantId || DEFAULT_TENANT_ID;
+      });
+      await tx.table('inventoryAdjustments').toCollection().modify((item: InventoryAdjustment) => {
+        item.tenantId = item.tenantId || DEFAULT_TENANT_ID;
+      });
     });
   }
 }
@@ -39,6 +60,7 @@ export async function seedIfEmpty() {
       if (Array.isArray(parsed)) {
         users = parsed.map(u => ({
           ...u,
+          tenantId: u.tenantId || DEFAULT_TENANT_ID,
           createdAt: u.createdAt ?? now,
           updatedAt: now
         }));
@@ -56,6 +78,7 @@ export async function seedIfEmpty() {
       if (Array.isArray(parsed)) {
         customers = parsed.map(c => ({
           ...c,
+          tenantId: c.tenantId || DEFAULT_TENANT_ID,
           createdAt: c.createdAt ?? now,
           updatedAt: now
         }));
@@ -67,6 +90,7 @@ export async function seedIfEmpty() {
   if (customers.length === 0) {
     customers = MOCK_CUSTOMERS.map(c => ({
       ...c,
+      tenantId: DEFAULT_TENANT_ID,
       createdAt: c.createdAt ?? now,
       updatedAt: now
     }));
@@ -74,12 +98,14 @@ export async function seedIfEmpty() {
 
   const products: Product[] = MOCK_PRODUCTS.map(p => ({
     ...p,
+    tenantId: DEFAULT_TENANT_ID,
     createdAt: p.createdAt ?? now,
     updatedAt: now
   }));
 
   const orders: Order[] = MOCK_ORDERS.map(o => ({
     ...o,
+    tenantId: o.tenantId || DEFAULT_TENANT_ID,
     updatedAt: now
   }));
 
@@ -91,6 +117,7 @@ export async function seedIfEmpty() {
       if (Array.isArray(parsed)) {
         monthlyAccounts = parsed.map(a => ({
           ...a,
+          tenantId: a.tenantId || DEFAULT_TENANT_ID,
           cycleStart: new Date(a.cycleStart),
           items: (a.items || []).map(i => ({ ...i, createdAt: new Date(i.createdAt) })),
           payments: (a.payments || []).map(p => ({ ...p, createdAt: new Date(p.createdAt) })),
@@ -107,6 +134,7 @@ export async function seedIfEmpty() {
       .filter(c => typeof c.monthlyLimit === 'number')
       .map(c => ({
         id: `m_${c.id}`,
+        tenantId: c.tenantId || DEFAULT_TENANT_ID,
         customerId: c.id,
         limit: c.monthlyLimit as number,
         cycleStart: new Date(),
@@ -142,26 +170,30 @@ export async function loadAll() {
   return { customers, products, orders, monthlyAccounts, users };
 }
 
-export async function forceSyncSeedData() {
+export async function forceSyncSeedData(tenantId: string) {
   const now = Date.now();
   const customers: Customer[] = MOCK_CUSTOMERS.map(c => ({
     ...c,
+    tenantId,
     createdAt: c.createdAt ?? now,
     updatedAt: now
   }));
   const products: Product[] = MOCK_PRODUCTS.map(p => ({
     ...p,
+    tenantId,
     createdAt: p.createdAt ?? now,
     updatedAt: now
   }));
   const orders: Order[] = MOCK_ORDERS.map(o => ({
     ...o,
+    tenantId,
     updatedAt: now
   }));
   const monthlyAccounts: MonthlyAccount[] = customers
     .filter(c => typeof c.monthlyLimit === 'number')
     .map(c => ({
       id: `m_${c.id}`,
+      tenantId,
       customerId: c.id,
       limit: c.monthlyLimit as number,
       cycleStart: new Date(),
@@ -173,10 +205,10 @@ export async function forceSyncSeedData() {
     }));
 
   await db.transaction('rw', db.customers, db.products, db.orders, db.monthlyAccounts, async () => {
-    await db.customers.clear();
-    await db.products.clear();
-    await db.orders.clear();
-    await db.monthlyAccounts.clear();
+    await db.customers.where('tenantId').equals(tenantId).delete();
+    await db.products.where('tenantId').equals(tenantId).delete();
+    await db.orders.where('tenantId').equals(tenantId).delete();
+    await db.monthlyAccounts.where('tenantId').equals(tenantId).delete();
     await db.customers.bulkPut(customers);
     await db.products.bulkPut(products);
     await db.orders.bulkPut(orders);

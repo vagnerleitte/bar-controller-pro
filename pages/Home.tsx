@@ -4,6 +4,7 @@ import { AppState, Order, Customer, Product, User, MonthlyAccount } from '../typ
 import { getMonthlyBalance } from '../utils/monthly';
 import BottomNav from '../components/BottomNav';
 import TopMenu from '../components/TopMenu';
+import AppLogo from '../components/AppLogo';
 
 interface HomeProps {
   navigate: (page: AppState, customerId?: string | null) => void;
@@ -89,7 +90,8 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, mont
       <header className="sticky top-0 z-50 bg-background-dark/80 backdrop-blur-xl border-b border-primary/10 safe-area-top">
         <div className="px-5 py-4 flex items-center justify-between">
           <div className="flex flex-col">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
+              <AppLogo className="w-9 h-9" />
               <h1 className="text-2xl font-extrabold tracking-tight">Início</h1>
               <span className="bg-primary/10 text-primary text-[10px] font-bold px-2 py-0.5 rounded-full border border-primary/20">OFFLINE</span>
             </div>

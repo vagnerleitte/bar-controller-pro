@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { AppState, Customer, MonthlyAccount, Product } from '../types';
 import { getDaysSinceCycleStart } from '../utils/monthly';
+import AppLogo from '../components/AppLogo';
 
 interface MonthlyDetailProps {
   navigate: (page: AppState, customerId?: string | null) => void;
@@ -87,7 +88,10 @@ const MonthlyDetail: React.FC<MonthlyDetailProps> = ({
               <span className="material-icons-round text-3xl">chevron_left</span>
             </button>
             <div>
-              <h1 className="text-lg font-extrabold tracking-tight">{customer.name}</h1>
+              <div className="flex items-center gap-3">
+                <AppLogo className="w-8 h-8" />
+                <h1 className="text-lg font-extrabold tracking-tight">{customer.name}</h1>
+              </div>
               <p className="text-[10px] text-primary/60 font-medium uppercase tracking-widest">Mensalista</p>
             </div>
           </div>

@@ -1,6 +1,7 @@
 
 import React, { useMemo, useState } from 'react';
 import { AppState, Order, Customer, Product, UserRole } from '../types';
+import AppLogo from '../components/AppLogo';
 
 interface CustomerDetailProps {
   navigate: (page: AppState, customerId?: string | null) => void;
@@ -149,7 +150,10 @@ const CustomerDetail: React.FC<CustomerDetailProps> = ({
               <span className="material-icons-round text-xl">arrow_back_ios_new</span>
             </button>
             <div>
-              <h1 className="text-lg font-extrabold">{customer.name}</h1>
+              <div className="flex items-center gap-3">
+                <AppLogo className="w-8 h-8" />
+                <h1 className="text-lg font-extrabold">{customer.name}</h1>
+              </div>
               <div className="flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
                 <span className="text-[10px] font-bold text-primary uppercase tracking-widest">Comanda Aberta</span>

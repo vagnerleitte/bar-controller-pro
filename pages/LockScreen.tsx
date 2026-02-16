@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { User } from '../types';
 import { login, formatCPF, normalizeCPF } from '../services/auth';
+import AppLogo from '../components/AppLogo';
 
 interface LockScreenProps {
   onAuthSuccess: (user: User) => void;
@@ -41,7 +42,7 @@ const LockScreen: React.FC<LockScreenProps> = ({ onAuthSuccess }) => {
       <main className="relative z-10 w-full max-w-sm flex flex-col items-center">
         <div className="text-center mb-10">
           <div className="w-16 h-16 bg-primary/20 rounded-xl flex items-center justify-center mx-auto mb-4 border border-primary/30 shadow-lg shadow-primary/10">
-            <span className="material-icons-round text-primary text-3xl">lock</span>
+            <AppLogo className="w-11 h-11" />
           </div>
           <h1 className="text-white text-2xl font-bold tracking-tight mb-2">Acesso ao sistema</h1>
           <p className="text-white/50 text-sm">CPF e senha para entrar</p>

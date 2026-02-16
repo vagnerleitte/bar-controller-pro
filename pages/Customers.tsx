@@ -2,6 +2,7 @@ import React from 'react';
 import { AppState, Customer, UserRole } from '../types';
 import BottomNav from '../components/BottomNav';
 import TopMenu from '../components/TopMenu';
+import AppLogo from '../components/AppLogo';
 
 interface CustomersProps {
   navigate: (page: AppState, customerId?: string | null) => void;
@@ -17,7 +18,10 @@ const Customers: React.FC<CustomersProps> = ({ navigate, customers, privacyMode,
       <header className="sticky top-0 z-50 bg-background-dark/80 backdrop-blur-xl border-b border-primary/10 safe-area-top">
         <div className="px-5 py-4 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-extrabold tracking-tight">Clientes</h1>
+            <div className="flex items-center gap-3">
+              <AppLogo className="w-9 h-9" />
+              <h1 className="text-2xl font-extrabold tracking-tight">Clientes</h1>
+            </div>
             <p className="text-xs text-primary/60 font-medium uppercase tracking-widest mt-0.5">Cadastro e lista</p>
           </div>
           <button

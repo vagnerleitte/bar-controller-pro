@@ -1,6 +1,7 @@
 
 export interface Product {
   id: string;
+  tenantId?: string;
   name: string;
   sku: string;
   price: number;
@@ -21,6 +22,7 @@ export interface Product {
 
 export interface Customer {
   id: string;
+  tenantId?: string;
   name: string;
   phone: string;
   avatar: string;
@@ -40,6 +42,7 @@ export interface OrderItem {
 
 export interface Order {
   id: string;
+  tenantId?: string;
   customerId: string;
   table?: string;
   location: 'Mesa' | 'Balcão';
@@ -78,6 +81,7 @@ export interface MonthlyPayment {
 
 export interface MonthlyAccount {
   id: string;
+  tenantId?: string;
   customerId: string;
   limit: number;
   cycleStart: Date;
@@ -90,6 +94,7 @@ export interface MonthlyAccount {
 
 export interface InventoryAdjustment {
   id: string;
+  tenantId?: string;
   productId: string;
   delta: number;
   reason: 'IN' | 'LOSS';
@@ -101,6 +106,7 @@ export type UserRole = 'admin' | 'seller';
 
 export interface User {
   id: string;
+  tenantId?: string;
   name: string;
   cpf: string;
   role: UserRole;

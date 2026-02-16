@@ -4,6 +4,7 @@ import { AppState, MonthlyAccount, Order, UserRole } from '../types';
 import { getMonthlyBalance } from '../utils/monthly';
 import BottomNav from '../components/BottomNav';
 import { getBarInsights } from '../services/geminiService';
+import AppLogo from '../components/AppLogo';
 
 interface ReportsProps {
   // Fix: navigate function signature should accept optional customerId for consistency
@@ -70,7 +71,10 @@ const Reports: React.FC<ReportsProps> = ({ navigate, orders, monthlyAccounts, pr
               <span className="material-icons-round">{privacyMode ? 'visibility' : 'visibility_off'}</span>
             </button>
           </div>
-          <h1 className="text-4xl font-extrabold tracking-tight">Relatórios</h1>
+          <div className="flex items-center gap-3">
+            <AppLogo className="w-10 h-10" />
+            <h1 className="text-4xl font-extrabold tracking-tight">Relatórios</h1>
+          </div>
         </div>
       </header>
 

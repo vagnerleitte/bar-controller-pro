@@ -15,7 +15,7 @@ import MonthlyAccounts from './pages/MonthlyAccounts';
 import MonthlyDetail from './pages/MonthlyDetail';
 import Users from './pages/Users';
 import { getMonthlyBalance, getMonthlyAvailableLimit, isMonthlyBlocked } from './utils/monthly';
-import { db, forceSyncSeedData, loadAll, seedIfEmpty } from './services/db';
+import { db, DEFAULT_TENANT_ID, forceSyncSeedData, loadAll, seedIfEmpty } from './services/db';
 import { ensureDefaultAdmin } from './services/auth';
 
 const App: React.FC = () => {
@@ -28,7 +28,9 @@ const App: React.FC = () => {
   const [monthlyAccounts, setMonthlyAccounts] = useState<MonthlyAccount[]>([]);
   const [activeOrders, setActiveOrders] = useState<Order[]>([]);
   const [users, setUsers] = useState<User[]>([]);
+  const [allUsers, setAllUsers] = useState<User[]>([]);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [currentTenantId, setCurrentTenantId] = useState<string | null>(null);
   const [dbReady, setDbReady] = useState(false);
   const prevCustomersRef = useRef<Customer[]>([]);
   const prevProductsRef = useRef<Product[]>([]);
@@ -41,24 +43,9 @@ const App: React.FC = () => {
     const init = async () => {
       await seedIfEmpty();
       await ensureDefaultAdmin();
-      const { customers, products, orders, monthlyAccounts, users } = await loadAll();
+      const { users } = await loadAll();
       if (cancelled) return;
-      const parsedMonthly = monthlyAccounts.map(a => ({
-        ...a,
-        cycleStart: new Date(a.cycleStart),
-        items: (a.items || []).map(i => ({ ...i, createdAt: new Date(i.createdAt) })),
-        payments: (a.payments || []).map(p => ({ ...p, createdAt: new Date(p.createdAt) }))
-      }));
-      setCustomers(customers);
-      setProducts(products.length > 0 ? products : MOCK_PRODUCTS);
-      setActiveOrders(orders);
-      setUsers(users);
-      setMonthlyAccounts(parsedMonthly);
-      prevCustomersRef.current = customers;
-      prevProductsRef.current = products.length > 0 ? products : MOCK_PRODUCTS;
-      prevOrdersRef.current = orders;
-      prevUsersRef.current = users;
-      prevMonthlyRef.current = parsedMonthly;
+      setAllUsers(users.map(user => ({ ...user, tenantId: user.tenantId || DEFAULT_TENANT_ID })));
       setDbReady(true);
     };
     init();
@@ -67,26 +54,61 @@ const App: React.FC = () => {
     };
   }, []);
 
+  const loadTenantScopedData = async (tenantId: string) => {
+    const { customers, products, orders, monthlyAccounts, users } = await loadAll();
+    const tenantCustomers = customers.filter(item => (item.tenantId || DEFAULT_TENANT_ID) === tenantId);
+    const tenantProducts = products.filter(item => (item.tenantId || DEFAULT_TENANT_ID) === tenantId);
+    const tenantOrders = orders.filter(item => (item.tenantId || DEFAULT_TENANT_ID) === tenantId);
+    const tenantUsers = users
+      .map(item => ({ ...item, tenantId: item.tenantId || DEFAULT_TENANT_ID }))
+      .filter(item => item.tenantId === tenantId);
+    const parsedMonthly = monthlyAccounts
+      .filter(item => (item.tenantId || DEFAULT_TENANT_ID) === tenantId)
+      .map(a => ({
+        ...a,
+        tenantId,
+        cycleStart: new Date(a.cycleStart),
+        items: (a.items || []).map(i => ({ ...i, createdAt: new Date(i.createdAt) })),
+        payments: (a.payments || []).map(p => ({ ...p, createdAt: new Date(p.createdAt) }))
+      }));
+
+    setCustomers(tenantCustomers);
+    setProducts(tenantProducts.length > 0 ? tenantProducts : MOCK_PRODUCTS.map(p => ({ ...p, tenantId })));
+    setActiveOrders(tenantOrders);
+    setUsers(tenantUsers);
+    setMonthlyAccounts(parsedMonthly);
+    prevCustomersRef.current = tenantCustomers;
+    prevProductsRef.current = tenantProducts.length > 0 ? tenantProducts : MOCK_PRODUCTS.map(p => ({ ...p, tenantId }));
+    prevOrdersRef.current = tenantOrders;
+    prevUsersRef.current = tenantUsers;
+    prevMonthlyRef.current = parsedMonthly;
+  };
+
   useEffect(() => {
     if (!dbReady) return;
     const userId = localStorage.getItem('auth_user_id');
     if (!userId) {
+      setCurrentTenantId(null);
       setCurrentPage('lock');
       return;
     }
-    const user = users.find(u => u.id === userId);
+    const user = allUsers.find(u => u.id === userId);
     if (user) {
+      const tenantId = user.tenantId || DEFAULT_TENANT_ID;
+      setCurrentTenantId(tenantId);
       setCurrentUser(user);
       setCurrentPage('home');
+      loadTenantScopedData(tenantId);
       return;
     }
     localStorage.removeItem('auth_user_id');
     setCurrentUser(null);
+    setCurrentTenantId(null);
     setCurrentPage('lock');
-  }, [dbReady, users]);
+  }, [dbReady, allUsers]);
 
   useEffect(() => {
-    if (!dbReady) return;
+    if (!dbReady || !currentTenantId) return;
     const prev = prevCustomersRef.current;
     const prevById = new Map(prev.map(item => [item.id, item]));
     const changed = customers.filter(item => {
@@ -94,13 +116,13 @@ const App: React.FC = () => {
       return !previous || JSON.stringify(previous) !== JSON.stringify(item);
     });
     const removed = prev.filter(item => !customers.some(current => current.id === item.id)).map(item => item.id);
-    if (changed.length > 0) db.customers.bulkPut(changed);
+    if (changed.length > 0) db.customers.bulkPut(changed.map(item => ({ ...item, tenantId: currentTenantId })));
     if (removed.length > 0) db.customers.bulkDelete(removed);
     prevCustomersRef.current = customers;
-  }, [customers, dbReady]);
+  }, [customers, dbReady, currentTenantId]);
 
   useEffect(() => {
-    if (!dbReady) return;
+    if (!dbReady || !currentTenantId) return;
     const prev = prevProductsRef.current;
     const prevById = new Map(prev.map(item => [item.id, item]));
     const changed = products.filter(item => {
@@ -108,13 +130,13 @@ const App: React.FC = () => {
       return !previous || JSON.stringify(previous) !== JSON.stringify(item);
     });
     const removed = prev.filter(item => !products.some(current => current.id === item.id)).map(item => item.id);
-    if (changed.length > 0) db.products.bulkPut(changed);
+    if (changed.length > 0) db.products.bulkPut(changed.map(item => ({ ...item, tenantId: currentTenantId })));
     if (removed.length > 0) db.products.bulkDelete(removed);
     prevProductsRef.current = products;
-  }, [products, dbReady]);
+  }, [products, dbReady, currentTenantId]);
 
   useEffect(() => {
-    if (!dbReady) return;
+    if (!dbReady || !currentTenantId) return;
     const prev = prevOrdersRef.current;
     const prevById = new Map(prev.map(item => [item.id, item]));
     const changed = activeOrders.filter(item => {
@@ -122,13 +144,13 @@ const App: React.FC = () => {
       return !previous || JSON.stringify(previous) !== JSON.stringify(item);
     });
     const removed = prev.filter(item => !activeOrders.some(current => current.id === item.id)).map(item => item.id);
-    if (changed.length > 0) db.orders.bulkPut(changed);
+    if (changed.length > 0) db.orders.bulkPut(changed.map(item => ({ ...item, tenantId: currentTenantId })));
     if (removed.length > 0) db.orders.bulkDelete(removed);
     prevOrdersRef.current = activeOrders;
-  }, [activeOrders, dbReady]);
+  }, [activeOrders, dbReady, currentTenantId]);
 
   useEffect(() => {
-    if (!dbReady) return;
+    if (!dbReady || !currentTenantId) return;
     const prev = prevMonthlyRef.current;
     const prevById = new Map(prev.map(item => [item.id, item]));
     const changed = monthlyAccounts.filter(item => {
@@ -136,13 +158,13 @@ const App: React.FC = () => {
       return !previous || JSON.stringify(previous) !== JSON.stringify(item);
     });
     const removed = prev.filter(item => !monthlyAccounts.some(current => current.id === item.id)).map(item => item.id);
-    if (changed.length > 0) db.monthlyAccounts.bulkPut(changed);
+    if (changed.length > 0) db.monthlyAccounts.bulkPut(changed.map(item => ({ ...item, tenantId: currentTenantId })));
     if (removed.length > 0) db.monthlyAccounts.bulkDelete(removed);
     prevMonthlyRef.current = monthlyAccounts;
-  }, [monthlyAccounts, dbReady]);
+  }, [monthlyAccounts, dbReady, currentTenantId]);
 
   useEffect(() => {
-    if (!dbReady) return;
+    if (!dbReady || !currentTenantId) return;
     const prev = prevUsersRef.current;
     const prevById = new Map(prev.map(item => [item.id, item]));
     const changed = users.filter(item => {
@@ -150,16 +172,21 @@ const App: React.FC = () => {
       return !previous || JSON.stringify(previous) !== JSON.stringify(item);
     });
     const removed = prev.filter(item => !users.some(current => current.id === item.id)).map(item => item.id);
-    if (changed.length > 0) db.users.bulkPut(changed);
+    if (changed.length > 0) db.users.bulkPut(changed.map(item => ({ ...item, tenantId: currentTenantId })));
     if (removed.length > 0) db.users.bulkDelete(removed);
     prevUsersRef.current = users;
-  }, [users, dbReady]);
+    setAllUsers(previous => {
+      const withoutTenant = previous.filter(item => (item.tenantId || DEFAULT_TENANT_ID) !== currentTenantId);
+      return [...withoutTenant, ...users.map(item => ({ ...item, tenantId: currentTenantId }))];
+    });
+  }, [users, dbReady, currentTenantId]);
 
   const navigate = (page: AppState, customerId: string | null = null) => {
     if (customerId) setSelectedCustomerId(customerId);
     if (page === 'lock') {
       localStorage.removeItem('auth_user_id');
       setCurrentUser(null);
+      setCurrentTenantId(null);
     }
     if (page === 'users' && currentUser?.role !== 'admin') {
       return;
@@ -173,28 +200,15 @@ const App: React.FC = () => {
   const handleAuthSuccess = (user: User) => {
     localStorage.setItem('auth_user_id', user.id);
     setCurrentUser(user);
+    setCurrentTenantId(user.tenantId || DEFAULT_TENANT_ID);
+    loadTenantScopedData(user.tenantId || DEFAULT_TENANT_ID);
     setCurrentPage('home');
   };
 
   const handleForceSeedSync = async () => {
-    await forceSyncSeedData();
-    const { customers, products, orders, monthlyAccounts, users } = await loadAll();
-    const parsedMonthly = monthlyAccounts.map(a => ({
-      ...a,
-      cycleStart: new Date(a.cycleStart),
-      items: (a.items || []).map(i => ({ ...i, createdAt: new Date(i.createdAt) })),
-      payments: (a.payments || []).map(p => ({ ...p, createdAt: new Date(p.createdAt) }))
-    }));
-    setCustomers(customers);
-    setProducts(products.length > 0 ? products : MOCK_PRODUCTS);
-    setActiveOrders(orders);
-    setUsers(users);
-    setMonthlyAccounts(parsedMonthly);
-    prevCustomersRef.current = customers;
-    prevProductsRef.current = products.length > 0 ? products : MOCK_PRODUCTS;
-    prevOrdersRef.current = orders;
-    prevUsersRef.current = users;
-    prevMonthlyRef.current = parsedMonthly;
+    if (!currentTenantId) return;
+    await forceSyncSeedData(currentTenantId);
+    await loadTenantScopedData(currentTenantId);
   };
 
   const renderPage = () => {
@@ -338,8 +352,10 @@ const App: React.FC = () => {
             products={products} 
             setProducts={setProducts}
             onRegisterAdjustment={({ productId, delta, reason, note }) => {
+              if (!currentTenantId) return;
               db.inventoryAdjustments.put({
                 id: `ia_${Date.now()}`,
+                tenantId: currentTenantId,
                 productId,
                 delta,
                 reason,

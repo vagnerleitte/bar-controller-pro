@@ -2,6 +2,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { AppState, Product, UserRole } from '../types';
 import BottomNav from '../components/BottomNav';
+import AppLogo from '../components/AppLogo';
 
 interface InventoryProps {
   // Fix: navigate function signature should accept optional customerId for consistency
@@ -347,7 +348,10 @@ const Inventory: React.FC<InventoryProps> = ({ navigate, products, setProducts, 
               </button>
             </div>
           </div>
-          <h1 className="text-3xl font-extrabold tracking-tight">Estoque</h1>
+          <div className="flex items-center gap-3">
+            <AppLogo className="w-10 h-10" />
+            <h1 className="text-3xl font-extrabold tracking-tight">Estoque</h1>
+          </div>
           <div className="grid grid-cols-2 gap-2">
             <button
               onClick={() => setStockFilter('low')}

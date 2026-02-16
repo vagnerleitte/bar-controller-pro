@@ -1,0 +1,25 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+
+  <!-- Background -->
+  <rect x="0" y="0" width="512" height="512" rx="96" fill="#0E3B2E"/>
+
+  <!-- Notebook body -->
+  <rect x="112" y="96" width="288" height="320" rx="32" fill="#145A44"/>
+
+  <!-- Notebook margin line -->
+  <rect x="176" y="96" width="12" height="320" fill="#FFFFFF"/>
+
+  <!-- Writing lines -->
+  <rect x="208" y="160" width="160" height="14" rx="7" fill="#FFFFFF"/>
+  <rect x="208" y="208" width="130" height="14" rx="7" fill="#FFFFFF"/>
+  <rect x="208" y="256" width="150" height="14" rx="7" fill="#FFFFFF"/>
+
+  <!-- Check mark -->
+  <path d="M220 320 L260 360 L340 280"
+        fill="none"
+        stroke="#F4C430"
+        stroke-width="28"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+
+</svg>

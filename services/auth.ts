@@ -1,4 +1,4 @@
-import { db } from './db';
+import { db, DEFAULT_TENANT_ID } from './db';
 import { User, UserRole } from '../types';
 
 const encoder = new TextEncoder();
@@ -55,7 +55,7 @@ export async function login(cpf: string, password: string) {
   if (!ok) {
     return { user: null, error: 'Senha incorreta.' };
   }
-  return { user, error: null };
+  return { user: { ...user, tenantId: user.tenantId || DEFAULT_TENANT_ID }, error: null };
 }
 
 export async function createUser(params: {
@@ -63,6 +63,7 @@ export async function createUser(params: {
   cpf: string;
   role: UserRole;
   password: string;
+  tenantId: string;
 }) {
   const cpfNormalized = normalizeCPF(params.cpf);
   const existing = await db.users.get({ cpf: cpfNormalized });
@@ -73,6 +74,7 @@ export async function createUser(params: {
   const { passwordHash, passwordSalt } = await createPasswordHash(params.password);
   const user: User = {
     id: `u_${now}`,
+    tenantId: params.tenantId,
     name: params.name,
     cpf: cpfNormalized,
     role: params.role,
@@ -109,6 +111,7 @@ export async function ensureDefaultAdmin() {
   const { passwordHash, passwordSalt } = await createPasswordHash('admin123');
   const user: User = {
     id: `u_${now}`,
+    tenantId: DEFAULT_TENANT_ID,
     name: 'Administrador',
     cpf: '00000000000',
     role: 'admin',
