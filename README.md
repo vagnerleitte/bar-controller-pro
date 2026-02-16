@@ -11,7 +11,6 @@ PWA offline-first para pequenos bares e conveniências, com foco em operação s
 - Abertura do app:
   - Com sessão válida (`auth_user_id`) abre em `Home`.
   - Sem sessão abre em `Lock`.
-  - A tela educacional (`ig_feed`) virou opcional e não bloqueia início.
 - Comandas:
   - Criação e gestão de comandas com status `open`, `payment`, `closed`.
   - Mesa segue aleatória de `01` a `30`.

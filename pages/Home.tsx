@@ -144,15 +144,6 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, mont
           </button>
         </section>
 
-        <section className="mt-4">
-          <button
-            onClick={() => navigate('ig_feed')}
-            className="text-xs text-primary/80 uppercase tracking-widest font-bold"
-          >
-            Ajuda rápida
-          </button>
-        </section>
-
         {/* Top Products Mini Grid */}
         <section className="mt-6">
           <div className="flex items-center justify-between mb-4">

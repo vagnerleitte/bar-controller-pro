@@ -14,7 +14,6 @@ import CustomerCreate from './pages/CustomerCreate';
 import MonthlyAccounts from './pages/MonthlyAccounts';
 import MonthlyDetail from './pages/MonthlyDetail';
 import Users from './pages/Users';
-import InstagramFeedEdu from './pages/InstagramFeedEdu';
 import { getMonthlyBalance, getMonthlyAvailableLimit, isMonthlyBlocked } from './utils/monthly';
 import { db, forceSyncSeedData, loadAll, seedIfEmpty } from './services/db';
 import { ensureDefaultAdmin } from './services/auth';
@@ -238,8 +237,6 @@ const App: React.FC = () => {
             currentUserRole={currentUser?.role}
           />
         );
-      case 'ig_feed':
-        return <InstagramFeedEdu onExit={() => navigate('home')} />;
       case 'monthly_accounts':
         return (
           <MonthlyAccounts

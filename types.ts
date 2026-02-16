@@ -114,7 +114,6 @@ export type AppState =
   | 'lock'
   | 'home'
   | 'sales'
-  | 'ig_feed'
   | 'inventory'
   | 'reports'
   | 'sale'
