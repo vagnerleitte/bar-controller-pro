@@ -213,6 +213,23 @@ export function persistAuthSession(session: AuthSession) {
   localStorage.setItem('auth_user_id', session.user.id);
 }
 
+export function upsertSessionUser(user: User) {
+  const raw = localStorage.getItem(AUTH_SESSION_KEY);
+  if (!raw) {
+    persistAuthSession({ user });
+    return;
+  }
+  try {
+    const current = JSON.parse(raw) as AuthSession;
+    persistAuthSession({
+      ...current,
+      user
+    });
+  } catch {
+    persistAuthSession({ user });
+  }
+}
+
 export function clearAuthSession() {
   localStorage.removeItem(AUTH_SESSION_KEY);
   localStorage.removeItem('auth_user_id');

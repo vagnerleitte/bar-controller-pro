@@ -55,7 +55,7 @@ const LockScreen: React.FC<LockScreenProps> = ({ onAuthSuccess }) => {
 
       <main className="relative z-10 w-full max-w-sm flex flex-col items-center">
         <div className="text-center mb-10">
-          <img src="/full-logo.svg" alt="Bar Controller Pro" className="w-[216px] mx-auto mb-4" />
+          <img src="/lockscreen-logo.svg" alt="Bar Controller Pro" className="w-[216px] mx-auto mb-4" />
           <h1 className="text-white text-[12px] font-bold tracking-tight mb-2">Acesso ao sistema</h1>
           <p className="text-white/50 text-sm">CPF e senha para entrar</p>
         </div>
@@ -115,8 +115,14 @@ const LockScreen: React.FC<LockScreenProps> = ({ onAuthSuccess }) => {
             <span className="material-icons-round text-sm">arrow_forward</span>
           </FormButton>
           
-          <div className="mt-6 text-white/40 text-[10px] font-medium text-center uppercase tracking-widest">
-            Primeiro acesso: CPF 000.000.000-00 • senha admin123
+          <div className="mt-6 text-[#F2F0E6] text-[13px] font-medium text-center">
+            Não possui conta?{' '}
+            <button
+              type="button"
+              className="text-[#F4C430] font-semibold hover:brightness-110 transition"
+            >
+              cadastre-se
+            </button>
           </div>
         </div>
 

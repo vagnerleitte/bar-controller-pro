@@ -16,7 +16,7 @@ import MonthlyDetail from './pages/MonthlyDetail';
 import Users from './pages/Users';
 import { getMonthlyBalance, getMonthlyAvailableLimit, isMonthlyBlocked } from './utils/monthly';
 import { db, DEFAULT_TENANT_ID, forceSyncSeedData, loadAll, seedIfEmpty } from './services/db';
-import { clearAuthSession, ensureDefaultAdmin, persistAuthSession, restoreAuthUser } from './services/auth';
+import { clearAuthSession, ensureDefaultAdmin, restoreAuthUser, upsertSessionUser } from './services/auth';
 
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<AppState>('lock');
@@ -204,7 +204,7 @@ const App: React.FC = () => {
 
   const handleAuthSuccess = (user: User) => {
     const normalizedUser = { ...user, tenantId: user.tenantId || DEFAULT_TENANT_ID };
-    persistAuthSession({ user: normalizedUser });
+    upsertSessionUser(normalizedUser);
     setCurrentUser(normalizedUser);
     setCurrentTenantId(normalizedUser.tenantId);
     loadTenantScopedData(normalizedUser.tenantId);
