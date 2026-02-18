@@ -242,7 +242,7 @@ const Sale: React.FC<SaleProps> = ({
 
   return (
     <div className="h-screen overflow-hidden flex flex-col relative">
-      <header className="safe-area-top sticky top-0 bg-background-dark/80 backdrop-blur-xl border-b border-white/5 z-50">
+      <header className="safe-area-top sticky top-0 bg-background-dark/80 backdrop-blur-xl z-50">
         <div className="px-5 py-4 flex items-center justify-between">
           <button onClick={() => navigate('home')} className="text-primary active:scale-90 transition-transform">
             <span className="material-icons-round text-3xl">chevron_left</span>

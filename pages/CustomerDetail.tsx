@@ -144,7 +144,7 @@ const CustomerDetail: React.FC<CustomerDetailProps> = ({
 
   return (
     <div className="pb-72">
-      <header className="sticky top-0 z-50 bg-background-dark/80 backdrop-blur-xl border-b border-primary/10 safe-area-top">
+      <header className="sticky top-0 z-50 bg-background-dark/80 backdrop-blur-xl safe-area-top">
         <div className="px-5 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button onClick={() => navigate('home')} className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 active:scale-90 transition-transform">

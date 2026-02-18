@@ -57,7 +57,7 @@ const Reports: React.FC<ReportsProps> = ({ navigate, orders, monthlyAccounts, pr
 
   return (
     <div className="pb-32">
-      <header className="sticky top-0 z-50 bg-background-dark/80 backdrop-blur-xl border-b border-primary/10 safe-area-top">
+      <header className="sticky top-0 z-50 bg-background-dark/80 backdrop-blur-xl safe-area-top">
         <div className="px-6 py-4 flex flex-col gap-2">
           <div className="flex justify-between items-center mb-2">
             <div className="flex items-center gap-2">

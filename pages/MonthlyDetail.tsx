@@ -82,7 +82,7 @@ const MonthlyDetail: React.FC<MonthlyDetailProps> = ({
 
   return (
     <div className="pb-32">
-      <header className="sticky top-0 z-50 bg-background-dark/80 backdrop-blur-xl border-b border-primary/10 safe-area-top">
+      <header className="sticky top-0 z-50 bg-background-dark/80 backdrop-blur-xl safe-area-top">
         <div className="px-5 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button onClick={() => navigate('monthly_accounts')} className="text-primary active:scale-90 transition-transform">

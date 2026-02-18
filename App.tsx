@@ -14,6 +14,7 @@ import CustomerCreate from './pages/CustomerCreate';
 import MonthlyAccounts from './pages/MonthlyAccounts';
 import MonthlyDetail from './pages/MonthlyDetail';
 import Users from './pages/Users';
+import HomeIndicatorBar from './components/HomeIndicatorBar';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getMonthlyBalance, getMonthlyAvailableLimit, isMonthlyBlocked } from './utils/monthly';
 import { db, DEFAULT_TENANT_ID, forceSyncSeedData, loadAll, seedIfEmpty } from './services/db';
@@ -594,7 +595,7 @@ const App: React.FC = () => {
     <div className="min-h-screen bg-background-dark text-white font-sans overflow-x-hidden selection:bg-primary/30">
       {renderPage()}
       {currentPage !== 'lock' && (
-        <div className="fixed bottom-2 left-1/2 -translate-x-1/2 w-32 h-1 bg-white/20 rounded-full z-[100] pointer-events-none"></div>
+        <HomeIndicatorBar />
       )}
     </div>
   );
