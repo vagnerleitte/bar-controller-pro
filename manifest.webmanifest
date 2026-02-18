@@ -1,7 +1,7 @@
 {
-  "name": "Bar Controller Pro",
-  "short_name": "Bar Controller",
-  "description": "Caderninho do Fiado para gestão de bares e conveniências.",
+  "name": "Caderinho de bar",
+  "short_name": "Caderinho",
+  "description": "Caderinho de bar para gestão simples de vendas e comandas.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#102218",

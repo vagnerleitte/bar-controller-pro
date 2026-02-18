@@ -1,6 +1,6 @@
 
 {
-  "name": "Bar Controller Pro",
+  "name": "Caderinho de bar",
   "description": "A high-fidelity bar management application with offline-first capabilities, inventory tracking, and sales reporting. Features a dark-themed iOS-style interface with glassmorphism effects.",
   "requestFramePermissions": [
     "camera"

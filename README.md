@@ -1,4 +1,4 @@
-# Bar Controller Pro
+# Caderinho de bar
 
 PWA offline-first para operação de bar/comanda, focado em uso simples para pequenos estabelecimentos.
 

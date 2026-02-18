@@ -55,7 +55,7 @@ const LockScreen: React.FC<LockScreenProps> = ({ onAuthSuccess }) => {
 
       <main className="relative z-10 w-full max-w-sm flex flex-col items-center">
         <div className="text-center mb-10">
-          <img src="/lockscreen-logo.svg" alt="Bar Controller Pro" className="w-[216px] mx-auto mb-4" />
+          <img src="/lockscreen-logo.svg" alt="Caderinho de bar" className="w-[216px] mx-auto mb-4" />
           <h1 className="text-white text-[12px] font-bold tracking-tight mb-2">Acesso ao sistema</h1>
           <p className="text-white/50 text-sm">CPF e senha para entrar</p>
         </div>
