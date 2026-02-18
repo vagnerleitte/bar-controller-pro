@@ -20,18 +20,62 @@ const meta: Meta<typeof FormButton> = {
 export default meta;
 type Story = StoryObj<typeof FormButton>;
 
-export const Primary: Story = {
-  args: { variant: 'primary' }
+export const ContainedPrimary: Story = {
+  args: { variant: 'contained', tone: 'primary' }
 };
 
-export const Secondary: Story = {
-  args: { variant: 'secondary' }
+export const ContainedDanger: Story = {
+  args: { variant: 'contained', tone: 'danger', children: 'Excluir' }
 };
 
-export const Ghost: Story = {
-  args: { variant: 'ghost' }
+export const ContainedSuccess: Story = {
+  args: { variant: 'contained', tone: 'success' }
 };
 
-export const Danger: Story = {
-  args: { variant: 'danger', children: 'Excluir' }
+export const ContainedInfo: Story = {
+  args: { variant: 'contained', tone: 'info' }
+};
+
+export const ContainedNeutral: Story = {
+  args: { variant: 'contained', tone: 'neutral' }
+};
+
+export const OutlinedPrimary: Story = {
+  args: { variant: 'outlined', tone: 'primary' }
+};
+
+export const OutlinedDanger: Story = {
+  args: { variant: 'outlined', tone: 'danger', children: 'Excluir' }
+};
+
+export const OutlinedSuccess: Story = {
+  args: { variant: 'outlined', tone: 'success' }
+};
+
+export const OutlinedInfo: Story = {
+  args: { variant: 'outlined', tone: 'info' }
+};
+
+export const OutlinedNeutral: Story = {
+  args: { variant: 'outlined', tone: 'neutral' }
+};
+
+export const LinkPrimary: Story = {
+  args: { variant: 'link', tone: 'primary' }
+};
+
+export const LinkDanger: Story = {
+  args: { variant: 'link', tone: 'danger', children: 'Excluir' }
+};
+
+export const LinkSuccess: Story = {
+  args: { variant: 'link', tone: 'success' }
+};
+
+export const LinkInfo: Story = {
+  args: { variant: 'link', tone: 'info' }
+};
+
+export const LinkNeutral: Story = {
+  args: { variant: 'link', tone: 'neutral' }
 };
