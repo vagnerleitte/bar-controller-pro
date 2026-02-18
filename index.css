@@ -121,17 +121,17 @@
 
 /* Beach mode card rule: off-white cards + very dark text */
 [data-theme='daylight'] .bg-white\/5 {
-  background-color: #f7fbf8 !important;
+  background-color: #dde3e1 !important;
   color: #062b17 !important;
 }
 
 [data-theme='daylight'] .bg-white\/10 {
-  background-color: #f3f9f5 !important;
+  background-color: #d8dddb !important;
   color: #062b17 !important;
 }
 
 [data-theme='daylight'] .bg-white\/20 {
-  background-color: #eef6f1 !important;
+  background-color: #d2d7d5 !important;
   color: #062b17 !important;
 }
 
@@ -139,7 +139,7 @@
 [data-theme='daylight'] .bg-\[\#0a4631\],
 [data-theme='daylight'] .bg-\[\#063324\],
 [data-theme='daylight'] .bg-\[\#001710\]\/75 {
-  background-color: #f3f9f5 !important;
+  background-color: #d8dddb !important;
   color: #062b17 !important;
 }
 

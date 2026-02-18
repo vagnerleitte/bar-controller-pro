@@ -211,7 +211,9 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, mont
           </button>
           <button
             onClick={() => setShowComandaPicker(v => !v)}
-            className="w-full h-24 rounded-[30px] bg-transparent border-2 border-[#064127] text-[#05331f] font-extrabold text-[16px] tracking-tight flex items-center justify-center gap-2"
+            className={`w-full h-24 rounded-[30px] bg-transparent border-2 font-extrabold text-[16px] tracking-tight flex items-center justify-center gap-2 ${
+              isDaylight ? 'border-[#064127] text-[#05331f]' : 'border-primary/40 text-primary'
+            }`}
           >
             <span className="material-icons-round text-[16px]">list_alt</span>
             Ver comanda
