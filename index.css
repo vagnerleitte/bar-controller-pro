@@ -70,3 +70,54 @@ body {
 .privacy-none {
   filter: none;
 }
+
+/* Global palette normalization: reduce white borders and keep green identity */
+.border-white\/5 {
+  border-color: rgb(19 236 109 / 0.22) !important;
+}
+
+.border-white\/10 {
+  border-color: rgb(19 236 109 / 0.32) !important;
+}
+
+.border-white\/20 {
+  border-color: rgb(19 236 109 / 0.46) !important;
+}
+
+.border-white\/30 {
+  border-color: rgb(19 236 109 / 0.56) !important;
+}
+
+/* Replace white glass surfaces with green-tinted glass */
+.bg-white\/5 {
+  background-color: rgb(19 236 109 / 0.08) !important;
+}
+
+.bg-white\/10 {
+  background-color: rgb(19 236 109 / 0.12) !important;
+}
+
+.bg-white\/20 {
+  background-color: rgb(19 236 109 / 0.18) !important;
+}
+
+/* Enforce neon-green for Tailwind primary border opacity variants */
+.border-primary\/5 {
+  border-color: rgb(19 236 109 / 0.14) !important;
+}
+
+.border-primary\/10 {
+  border-color: rgb(19 236 109 / 0.22) !important;
+}
+
+.border-primary\/20 {
+  border-color: rgb(19 236 109 / 0.32) !important;
+}
+
+.border-primary\/25 {
+  border-color: rgb(19 236 109 / 0.38) !important;
+}
+
+.border-primary\/30 {
+  border-color: rgb(19 236 109 / 0.46) !important;
+}
