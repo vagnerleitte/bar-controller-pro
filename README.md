@@ -1,89 +1,158 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Bar Controller Pro
 
-# Bar Controller Pro (Caderninho do Fiado)
+PWA offline-first para operação de bar/comanda, focado em uso simples para pequenos estabelecimentos.
 
-PWA offline-first para pequenos bares e conveniências, com foco em operação simples.
+## Visão geral
 
-## Fluxos principais
+- Operação principal:
+  - `Venda avulsa` (fluxo rápido)
+  - `Abrir comanda`
+- Persistência local com Dexie (offline-first).
+- Isolamento lógico por `tenantId`.
+- Sessão persistente entre reloads.
+- Suporte de autenticação em dois modos:
+  - `local` (mock)
+  - `api` (REST backend)
 
-- Abertura do app:
-  - Com sessão válida (`auth_user_id`) abre em `Home`.
-  - Sem sessão abre em `Lock`.
-- Comandas:
-  - Criação e gestão de comandas com status `open`, `payment`, `closed`.
-  - Mesa segue aleatória de `01` a `30`.
-- Venda avulsa com pagamento imediato:
-  - Agora persiste como `Order` real fechado (`status: closed`).
-  - Salva itens + pagamento (PIX/Dinheiro/Cartão).
-  - Entra em relatórios e métricas.
+## Stack
 
-## Regras de estoque
+- React + TypeScript
+- Vite
+- Dexie (IndexedDB)
+- Tailwind (via CDN config no `index.html`)
+- React Router DOM
+- Storybook
 
-- Baixa automática de estoque quando itens entram em venda:
-  - em comanda aberta;
-  - em quick sale (pagamento imediato).
-- Não permite vender produto:
-  - `inactive`;
-  - sem estoque (`stock <= 0`).
-- Exibe alerta visual de `Baixo estoque` quando `stock <= minStock`.
-- Desfazer item na comanda restaura estoque automaticamente.
+## Requisitos
 
-## Correções operacionais (desfazer)
+- Node.js 20+
+- npm
 
-- Na tela da comanda:
-  - Remover item com confirmação.
-  - Recalcular totais imediatamente.
-- Pagamentos:
-  - Remover último pagamento (somente admin).
-  - Mostra feedback visual “Pagamento removido”.
+## Rodando localmente
 
-## Estoque operacional simples
+```bash
+npm install
+npm run dev
+```
 
-- Entrada de mercadoria:
-  - Seleciona produto + quantidade positiva.
-  - Aplica `stock += quantidade`.
-- Perda/Quebra:
-  - Seleciona produto + quantidade positiva.
-  - Aplica `stock = max(0, stock - quantidade)`.
-- Fluxos feitos para uso rápido com botões e campos grandes.
+App em desenvolvimento: `http://localhost:3000`
 
-## Mensalistas
+Build de produção:
 
-- Mantida lógica atual:
-  - bloqueio por atraso;
-  - desbloqueio com pagamento de 50%;
-  - redutor de 10% no disponível com saldo em aberto.
-- Tela de detalhe agora explica regras no painel “Como funciona”.
+```bash
+npm run build
+npm run preview
+```
 
-## Relatórios
+## Scripts
 
-- Considera pedidos fechados (comanda fechada + quick sale).
-- Exibe pagamentos por método.
-- Separa:
-  - `Em aberto (comandas)`;
-  - `Em aberto (mensalistas)`;
-  - total em aberto.
+- `npm run dev`: sobe app em modo desenvolvimento (HMR)
+- `npm run build`: build de produção
+- `npm run preview`: preview da build
+- `npm run storybook`: sobe Storybook
+- `npm run build-storybook`: build estática do Storybook
 
-## Executar localmente
+## Autenticação
 
-**Pré-requisito:** Node.js
+### Modo local (padrão)
 
-1. Instalar dependências:
-   `npm install`
-2. Configurar chave Gemini em `.env.local` (se usar insights IA).
-3. Rodar:
-   `npm run dev`
+Sem configuração extra, o app usa autenticação local (mock) com dados no Dexie.
 
-## Tema de cores (simples e configurável)
+### Modo API
 
-- O tema agora está centralizado em tokens CSS em `index.css`.
-- Paleta padrão e modo de alto contraste:
-  - `:root` (padrão)
-  - `[data-theme='high-contrast']`
-- API utilitária:
-  - `services/theme.ts`
-  - `applyThemeMode('default' | 'high-contrast')`
-  - `applyCustomThemeTokens({ '--color-primary': '#...' })`
-- O app carrega automaticamente o tema salvo no `localStorage`.
+Configure em `.env.local`:
+
+```env
+VITE_AUTH_MODE=api
+VITE_API_BASE_URL=http://localhost:3000
+```
+
+Contrato esperado no backend:
+
+- `POST /auth/login`
+- `POST /auth/refresh`
+- `POST /auth/logout`
+- `GET /auth/me`
+
+## Sessão
+
+A sessão é persistida e restaurada via:
+
+- `auth_session_v1`
+- `auth_user_id`
+
+No modo local, existe fallback entre as duas chaves para evitar perda de login em reload.
+
+## Rotas
+
+- `/lock`
+- `/`
+- `/sale`
+- `/sales`
+- `/customers`
+- `/customers/new`
+- `/customers/detail?customerId=...`
+- `/monthly`
+- `/monthly/detail?customerId=...`
+- `/inventory`
+- `/reports`
+- `/users`
+
+## Dados e isolamento (tenant)
+
+As entidades principais possuem `tenantId` e são carregadas/salvas por escopo de tenant:
+
+- `customers`
+- `products`
+- `orders`
+- `monthlyAccounts`
+- `users`
+- `inventoryAdjustments`
+
+## Tema (cores)
+
+Tema centralizado com tokens CSS:
+
+- `index.css`
+- `services/theme.ts`
+
+Recursos:
+
+- modo padrão
+- modo `high-contrast`
+- tokens customizáveis via `applyCustomThemeTokens`
+
+## Formulários reutilizáveis
+
+Componentes em `components/form`:
+
+- `FormInput`
+- `FormSelect`
+- `FormCheckbox`
+- `FormRadio`
+- `FormButton`
+- `FormLabel`
+
+## Regras de negócio principais
+
+- Status de pedido: `open`, `payment`, `closed`
+- Venda avulsa persiste como pedido fechado
+- Estoque baixa automaticamente na venda
+- Bloqueio para produto inativo ou sem estoque
+- Remoção de item restaura estoque
+- Remoção do último pagamento (admin)
+
+## Estrutura resumida
+
+- `App.tsx`: orquestração principal do app
+- `pages/*`: telas
+- `services/db.ts`: Dexie + seed
+- `services/auth.ts`: autenticação (local/api)
+- `services/theme.ts`: tema
+- `utils/monthly.ts`: regras de mensalista
+
+## Notas de operação
+
+- Projeto é pensado para operação simples.
+- Prioridade: evitar confusão e perda de venda.
+- Commits preferencialmente atômicos por assunto.
