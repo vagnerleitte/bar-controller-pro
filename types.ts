@@ -24,11 +24,24 @@ export interface Customer {
   id: string;
   tenantId?: string;
   name: string;
+  customerType?: 'PF' | 'PJ';
   phone: string;
   avatar: string;
   isFavorite?: boolean;
   birthday?: string;
   cpf?: string;
+  cnpj?: string;
+  establishmentName?: string;
+  serviceAddress?: {
+    cep?: string;
+    street?: string;
+    number?: string;
+    district?: string;
+    city?: string;
+    state?: string;
+    complement?: string;
+    reference?: string;
+  };
   monthlyLimit?: number;
   createdAt?: number;
   updatedAt?: number;
