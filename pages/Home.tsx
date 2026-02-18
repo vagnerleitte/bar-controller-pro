@@ -180,16 +180,16 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, mont
         <section className="mt-6 grid grid-cols-2 gap-3">
           <button
             onClick={() => navigate('sale')}
-            className="w-full h-24 rounded-[30px] bg-primary text-[#042317] font-black text-[14px] tracking-tight flex items-center justify-center gap-2 shadow-[0_16px_40px_rgba(26,232,111,0.25)]"
+            className="w-full h-24 rounded-[30px] bg-primary text-white font-black text-[16px] tracking-tight flex items-center justify-center gap-2 shadow-[0_16px_40px_rgba(26,232,111,0.25)]"
           >
-            <span className="material-icons-round text-[13px]">point_of_sale</span>
+            <span className="material-icons-round text-[15px]">point_of_sale</span>
             Venda avulsa
           </button>
           <button
             onClick={() => navigate('customers')}
-            className="w-full h-24 rounded-[30px] bg-[#083d2b] border border-primary/20 text-primary font-extrabold text-[14px] tracking-tight flex items-center justify-center gap-2"
+            className="w-full h-24 rounded-[30px] bg-[#083d2b] border border-primary/20 text-white font-extrabold text-[16px] tracking-tight flex items-center justify-center gap-2"
           >
-            <span className="material-icons-round text-[14px]">add_circle</span>
+            <span className="material-icons-round text-[16px]">add_circle</span>
             Abrir Comanda
           </button>
         </section>
