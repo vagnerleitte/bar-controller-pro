@@ -16,7 +16,7 @@ import MonthlyDetail from './pages/MonthlyDetail';
 import Users from './pages/Users';
 import { getMonthlyBalance, getMonthlyAvailableLimit, isMonthlyBlocked } from './utils/monthly';
 import { db, DEFAULT_TENANT_ID, forceSyncSeedData, loadAll, seedIfEmpty } from './services/db';
-import { ensureDefaultAdmin } from './services/auth';
+import { clearAuthSession, ensureDefaultAdmin, persistAuthSession, restoreAuthUser } from './services/auth';
 
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<AppState>('lock');
@@ -86,25 +86,30 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (!dbReady) return;
-    const userId = localStorage.getItem('auth_user_id');
-    if (!userId) {
-      setCurrentTenantId(null);
-      setCurrentPage('lock');
-      return;
-    }
-    const user = allUsers.find(u => u.id === userId);
-    if (user) {
+    let cancelled = false;
+
+    const restore = async () => {
+      const user = await restoreAuthUser(allUsers);
+      if (cancelled) return;
+      if (!user) {
+        clearAuthSession();
+        setCurrentUser(null);
+        setCurrentTenantId(null);
+        setCurrentPage('lock');
+        return;
+      }
+
       const tenantId = user.tenantId || DEFAULT_TENANT_ID;
       setCurrentTenantId(tenantId);
       setCurrentUser(user);
       setCurrentPage('home');
       loadTenantScopedData(tenantId);
-      return;
-    }
-    localStorage.removeItem('auth_user_id');
-    setCurrentUser(null);
-    setCurrentTenantId(null);
-    setCurrentPage('lock');
+    };
+
+    restore();
+    return () => {
+      cancelled = true;
+    };
   }, [dbReady, allUsers]);
 
   useEffect(() => {
@@ -184,7 +189,7 @@ const App: React.FC = () => {
   const navigate = (page: AppState, customerId: string | null = null) => {
     if (customerId) setSelectedCustomerId(customerId);
     if (page === 'lock') {
-      localStorage.removeItem('auth_user_id');
+      clearAuthSession();
       setCurrentUser(null);
       setCurrentTenantId(null);
     }
@@ -198,10 +203,11 @@ const App: React.FC = () => {
   };
 
   const handleAuthSuccess = (user: User) => {
-    localStorage.setItem('auth_user_id', user.id);
-    setCurrentUser(user);
-    setCurrentTenantId(user.tenantId || DEFAULT_TENANT_ID);
-    loadTenantScopedData(user.tenantId || DEFAULT_TENANT_ID);
+    const normalizedUser = { ...user, tenantId: user.tenantId || DEFAULT_TENANT_ID };
+    persistAuthSession({ user: normalizedUser });
+    setCurrentUser(normalizedUser);
+    setCurrentTenantId(normalizedUser.tenantId);
+    loadTenantScopedData(normalizedUser.tenantId);
     setCurrentPage('home');
   };
 
