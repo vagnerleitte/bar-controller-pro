@@ -31,6 +31,8 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, mont
   const [seedToast, setSeedToast] = useState<string | null>(null);
   const [topMenuOpen, setTopMenuOpen] = useState(false);
   const [themeMode, setThemeMode] = useState<ThemeMode>('default');
+  const [showComandaPicker, setShowComandaPicker] = useState(false);
+  const [comandaQuery, setComandaQuery] = useState('');
 
   useEffect(() => {
     setThemeMode(getStoredThemeMode());
@@ -52,6 +54,14 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, mont
     return matchesSearch && matchesTable && matchesCustomer;
   });
   const filteredOpenOrders = filteredOrders.filter(order => order.status === 'open');
+  const comandaOptions = filteredOpenOrders.filter(order => {
+    const customer = customers.find(c => c.id === order.customerId);
+    const query = comandaQuery.trim().toLowerCase();
+    if (!query) return true;
+    const table = String(order.table || '').toLowerCase();
+    const customerName = (customer?.name || '').toLowerCase();
+    return table.includes(query) || customerName.includes(query);
+  });
   const topProducts = useMemo(() => {
     const counter = new Map<string, number>();
     orders.forEach(order => {
@@ -111,7 +121,7 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, mont
               <span className="absolute -bottom-2 -right-1 bg-primary text-[#022114] text-[10px] font-black px-2 py-0.5 rounded-full leading-none">TOP</span>
             </div>
             <div>
-              <h1 className="text-[17px] leading-none font-black tracking-tight">Painel Boteco</h1>
+              <h1 className="text-[17px] leading-none font-black tracking-tight">Caderinho de bar</h1>
               <p className="text-primary text-xl font-semibold mt-1 flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-primary shadow-[0_0_10px] shadow-primary/70"></span>
                 Operante
@@ -191,23 +201,29 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, mont
       </header>
 
       <main className="px-5">
-        <section className="mt-6 grid grid-cols-2 gap-3">
+        <section className="mt-6 grid grid-cols-3 gap-3">
           <button
             onClick={() => navigate('sale')}
             className="w-full h-24 rounded-[30px] bg-primary text-white font-black text-[16px] tracking-tight flex items-center justify-center gap-2 shadow-[0_16px_40px_rgba(26,232,111,0.25)]"
           >
             <span className="material-icons-round text-[15px]">point_of_sale</span>
-            Venda avulsa
+            Venda
+          </button>
+          <button
+            onClick={() => setShowComandaPicker(v => !v)}
+            className="w-full h-24 rounded-[30px] bg-[#083d2b] border border-primary/20 text-white font-extrabold text-[16px] tracking-tight flex items-center justify-center gap-2"
+          >
+            <span className="material-icons-round text-[16px]">list_alt</span>
+            Ver comanda
           </button>
           <button
             onClick={() => navigate('customers')}
-            className="w-full h-24 rounded-[30px] bg-[#083d2b] border border-primary/20 text-white font-extrabold text-[16px] tracking-tight flex items-center justify-center gap-2"
+            className="w-full h-24 rounded-[30px] bg-[#0b4a35] border border-primary/20 text-white font-extrabold text-[16px] tracking-tight flex items-center justify-center gap-2"
           >
             <span className="material-icons-round text-[16px]">add_circle</span>
-            Abrir Comanda
+            Abrir comanda
           </button>
         </section>
-
         <section className="mt-8">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-xl font-black uppercase tracking-[0.14em] text-white/65">Produtos mais vendidos</h3>
@@ -365,6 +381,61 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, mont
         <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[240] bg-black/80 border border-white/10 rounded-xl px-4 py-2 text-xs font-bold">
           {seedToast}
           <button className="ml-3 text-primary" onClick={() => setSeedToast(null)}>OK</button>
+        </div>
+      )}
+
+      {showComandaPicker && (
+        <div className="fixed inset-0 z-[260] flex items-end">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => {
+              setShowComandaPicker(false);
+              setComandaQuery('');
+            }}
+          />
+          <div className="relative w-full max-w-md mx-auto bg-surface-dark border border-primary/20 rounded-t-3xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-base font-black">Ver comanda</h3>
+              <button
+                onClick={() => {
+                  setShowComandaPicker(false);
+                  setComandaQuery('');
+                }}
+                className="w-9 h-9 rounded-full bg-white/5 text-white/60 flex items-center justify-center"
+              >
+                <span className="material-icons-round">close</span>
+              </button>
+            </div>
+            <FormInput
+              type="text"
+              value={comandaQuery}
+              onChange={(e) => setComandaQuery(e.target.value)}
+              placeholder="Buscar por mesa ou cliente..."
+              className="py-2.5 text-sm"
+            />
+            <div className="mt-3 max-h-64 overflow-y-auto space-y-2">
+              {comandaOptions.map(order => {
+                const customer = customers.find(c => c.id === order.customerId);
+                return (
+                  <button
+                    key={order.id}
+                    onClick={() => {
+                      navigate('customer_detail', order.customerId);
+                      setShowComandaPicker(false);
+                      setComandaQuery('');
+                    }}
+                    className="w-full text-left rounded-xl px-3 py-3 bg-white/5 border border-white/10"
+                  >
+                    <p className="font-bold text-sm">{customer?.name || 'Cliente'}</p>
+                    <p className="text-xs text-primary">Mesa {order.table || '00'}</p>
+                  </button>
+                );
+              })}
+              {comandaOptions.length === 0 && (
+                <p className="text-sm text-white/70 py-2">Nenhuma comanda encontrada.</p>
+              )}
+            </div>
+          </div>
         </div>
       )}
       <BottomNav activePage="home" navigate={navigate} currentUserRole={currentUser?.role} />
