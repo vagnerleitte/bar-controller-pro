@@ -309,14 +309,14 @@ const Inventory: React.FC<InventoryProps> = ({ navigate, products, setProducts, 
 
   return (
     <div className="pb-32">
-      <header className="sticky top-0 z-50 bg-background-dark/80 backdrop-blur-xl border-b border-primary/10 safe-area-top">
+      <header className="sticky top-0 z-50 bg-background-dark/80 backdrop-blur-xl safe-area-top">
         <div className="px-5 py-4 flex flex-col gap-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-start justify-between gap-2">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
               <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-primary/80">Local Storage Active</span>
             </div>
-            <div className="flex gap-3">
+            <div className="flex flex-wrap justify-end gap-2 max-w-[70%]">
               <button 
                 onClick={() => setPrivacyMode(!privacyMode)}
                 className="w-10 h-10 flex items-center justify-center rounded-full bg-primary/10 text-primary border border-primary/20"
@@ -331,13 +331,13 @@ const Inventory: React.FC<InventoryProps> = ({ navigate, products, setProducts, 
               </button>
               <button
                 onClick={() => openAdjustment('IN')}
-                className="h-10 px-3 flex items-center justify-center rounded-full bg-white/5 text-white border border-white/10 text-[10px] font-bold uppercase tracking-widest"
+                className="h-10 px-2.5 flex items-center justify-center rounded-full bg-white/5 text-white border border-white/10 text-[9px] font-bold uppercase tracking-wide"
               >
                 Entrada
               </button>
               <button
                 onClick={() => openAdjustment('LOSS')}
-                className="h-10 px-3 flex items-center justify-center rounded-full bg-white/5 text-red-300 border border-white/10 text-[10px] font-bold uppercase tracking-widest"
+                className="h-10 px-2.5 flex items-center justify-center rounded-full bg-white/5 text-red-300 border border-white/10 text-[9px] font-bold uppercase tracking-wide"
               >
                 Perda
               </button>
