@@ -1,0 +1,72 @@
+:root {
+  color-scheme: dark;
+
+  /* Brand */
+  --color-primary: #13ec6d;
+  --color-primary-contrast: #042317;
+
+  /* Surfaces */
+  --color-background-light: #f6f8f7;
+  --color-background-dark: #102218;
+  --color-surface-dark: #1a2e22;
+  --color-border-dark: #243d2e;
+
+  /* Text */
+  --color-text-base: #ffffff;
+  --color-text-muted: rgba(255, 255, 255, 0.7);
+  --color-text-subtle: rgba(255, 255, 255, 0.5);
+
+  /* Feedback */
+  --color-success: #13ec6d;
+  --color-warning: #f4c430;
+  --color-danger: #ff6b6b;
+}
+
+[data-theme='high-contrast'] {
+  --color-primary: #29ff8a;
+  --color-primary-contrast: #00170d;
+  --color-background-dark: #0b120e;
+  --color-surface-dark: #151d18;
+  --color-border-dark: #2a4635;
+  --color-text-muted: rgba(255, 255, 255, 0.82);
+  --color-text-subtle: rgba(255, 255, 255, 0.68);
+}
+
+body {
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  background-color: var(--color-background-dark);
+  color: var(--color-text-base);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.ios-blur {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.safe-area-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.privacy-blur {
+  filter: blur(6px);
+  transition: filter 0.3s ease;
+}
+
+.privacy-none {
+  filter: none;
+}

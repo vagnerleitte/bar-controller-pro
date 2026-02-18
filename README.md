@@ -75,3 +75,15 @@ PWA offline-first para pequenos bares e conveniências, com foco em operação s
 2. Configurar chave Gemini em `.env.local` (se usar insights IA).
 3. Rodar:
    `npm run dev`
+
+## Tema de cores (simples e configurável)
+
+- O tema agora está centralizado em tokens CSS em `index.css`.
+- Paleta padrão e modo de alto contraste:
+  - `:root` (padrão)
+  - `[data-theme='high-contrast']`
+- API utilitária:
+  - `services/theme.ts`
+  - `applyThemeMode('default' | 'high-contrast')`
+  - `applyCustomThemeTokens({ '--color-primary': '#...' })`
+- O app carrega automaticamente o tema salvo no `localStorage`.
