@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "dependencies": {
     "dexie": "^4.0.10",
@@ -15,8 +17,13 @@
     "react-dom": "^19.2.4"
   },
   "devDependencies": {
+    "@storybook/addon-essentials": "8.6.17",
+    "@storybook/addon-interactions": "8.6.17",
+    "@storybook/blocks": "8.6.17",
+    "@storybook/react-vite": "8.6.17",
     "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^5.0.0",
+    "storybook": "8.6.17",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
   }

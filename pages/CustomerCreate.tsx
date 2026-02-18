@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { AppState, Customer } from '../types';
 import TopMenu from '../components/TopMenu';
 import AppLogo from '../components/AppLogo';
+import { FormButton, FormInput, FormLabel } from '../components/form';
 
 interface CustomerCreateProps {
   navigate: (page: AppState, customerId?: string | null) => void;
@@ -62,58 +63,54 @@ const CustomerCreate: React.FC<CustomerCreateProps> = ({ navigate, onCreate }) =
       <main className="px-5 py-6">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <label className="text-[10px] text-white/40 uppercase tracking-widest font-bold">Nome *</label>
-            <input
+            <FormLabel className="text-white/40">Nome *</FormLabel>
+            <FormInput
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-sm"
               placeholder="Ex: Mariana Costa"
               required
             />
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] text-white/40 uppercase tracking-widest font-bold">Telefone *</label>
-            <input
+            <FormLabel className="text-white/40">Telefone *</FormLabel>
+            <FormInput
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-sm"
               placeholder="Ex: +55 11 98877-6655"
               required
             />
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] text-white/40 uppercase tracking-widest font-bold">Aniversário</label>
-            <input
+            <FormLabel className="text-white/40">Aniversário</FormLabel>
+            <FormInput
               type="date"
               value={birthday}
               onChange={(e) => setBirthday(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-sm"
             />
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] text-white/40 uppercase tracking-widest font-bold">CPF</label>
-            <input
+            <FormLabel className="text-white/40">CPF</FormLabel>
+            <FormInput
               type="text"
               value={cpf}
               onChange={(e) => setCpf(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-sm"
               placeholder="Somente números (opcional)"
             />
           </div>
 
-          <button
+          <FormButton
             type="submit"
+            variant="contained"
+            tone="primary"
             disabled={!isValid}
             className={`w-full h-14 rounded-2xl font-black text-sm uppercase tracking-widest transition-all ${
-              isValid
-                ? 'bg-primary text-background-dark shadow-xl shadow-primary/20'
-                : 'bg-white/5 text-white/20 cursor-not-allowed'
+              isValid ? 'shadow-xl shadow-primary/20' : 'bg-white/5 text-white/20'
             }`}
           >
             Salvar
-          </button>
+          </FormButton>
         </form>
       </main>
     </div>

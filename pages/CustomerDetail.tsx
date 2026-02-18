@@ -2,6 +2,7 @@
 import React, { useMemo, useState } from 'react';
 import { AppState, Order, Customer, Product, UserRole } from '../types';
 import AppLogo from '../components/AppLogo';
+import { FormButton, FormInput, FormLabel, FormSelect } from '../components/form';
 
 interface CustomerDetailProps {
   navigate: (page: AppState, customerId?: string | null) => void;
@@ -245,12 +246,12 @@ const CustomerDetail: React.FC<CustomerDetailProps> = ({
           <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-white/30 px-1">Buscar produto para adicionar</h2>
           <div className="relative">
             <span className="material-icons-round absolute left-4 top-1/2 -translate-y-1/2 text-white/30">search</span>
-            <input
+            <FormInput
               type="text"
               value={productSearch}
               onChange={(event) => setProductSearch(event.target.value)}
               placeholder="Buscar por nome ou SKU..."
-              className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-sm"
+              className="pl-12 pr-4"
             />
           </div>
           {filteredProducts.length > 0 && (
@@ -355,51 +356,49 @@ const CustomerDetail: React.FC<CustomerDetailProps> = ({
                 <span className="material-icons-round">close</span>
               </button>
             </div>
-            <input
+            <FormInput
               type="number"
               value={paymentAmount}
               onChange={(event) => setPaymentAmount(event.target.value)}
               placeholder="Valor pago"
-              className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-sm mb-4"
+              className="mb-4"
             />
             <div className="mb-4">
-              <label className="text-[11px] text-white/50 uppercase tracking-widest font-bold block mb-2">
+              <FormLabel className="text-[11px] text-white/50 mb-2">
                 Dividir em X vezes
-              </label>
-              <select
+              </FormLabel>
+              <FormSelect
                 value={installments}
                 onChange={(event) => handleInstallmentsChange(Number(event.target.value))}
-                className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-sm"
               >
                 {[1, 2, 3, 4, 5, 6, 8, 10, 12].map(option => (
                   <option key={option} value={option}>
                     {option}x
                   </option>
                 ))}
-              </select>
+              </FormSelect>
             </div>
-            <select
+            <FormSelect
               value={paymentMethod}
               onChange={(event) => {
                 setPaymentMethod(event.target.value as 'PIX' | 'Dinheiro' | 'Cartão');
                 setCashReceived('');
               }}
-              className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-sm mb-4"
+              className="mb-4"
             >
               <option value="PIX">PIX</option>
               <option value="Dinheiro">Dinheiro</option>
               <option value="Cartão">Cartão</option>
-            </select>
+            </FormSelect>
             {paymentMethod === 'Dinheiro' && (
               <div className="mb-4 space-y-2">
-                <input
+                <FormInput
                   type="number"
                   min={0}
                   step="0.01"
                   value={cashReceived}
                   onChange={(event) => setCashReceived(event.target.value)}
                   placeholder="Valor recebido"
-                  className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-sm"
                 />
                 {cashReceived.trim().length > 0 && paymentValue > 0 && (
                   <p className={`text-xs font-bold ${cashDelta < 0 ? 'text-orange-300' : 'text-primary'}`}>
@@ -424,17 +423,17 @@ const CustomerDetail: React.FC<CustomerDetailProps> = ({
                 </span>
               </div>
             )}
-            <button
+            <FormButton
               onClick={handleConfirmPayment}
               disabled={paymentValue <= 0}
-              className={`w-full h-12 rounded-xl font-black text-sm uppercase tracking-widest ${
+              className={`w-full h-12 font-black text-sm uppercase tracking-widest ${
                 paymentValue > 0
-                  ? 'bg-primary text-background-dark'
+                  ? ''
                   : 'bg-white/5 text-white/30 border border-white/10'
               }`}
             >
               Adicionar pagamento
-            </button>
+            </FormButton>
           </div>
         </div>
       )}

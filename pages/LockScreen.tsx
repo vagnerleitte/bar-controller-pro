@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { User } from '../types';
 import { login, formatCPF, normalizeCPF } from '../services/auth';
-import AppLogo from '../components/AppLogo';
+import { FormButton, FormInput, FormLabel } from '../components/form';
 
 interface LockScreenProps {
   onAuthSuccess: (user: User) => void;
@@ -35,15 +35,19 @@ const LockScreen: React.FC<LockScreenProps> = ({ onAuthSuccess }) => {
     <div className="h-screen w-full flex flex-col items-center justify-center p-6 relative">
       {/* Background Decorative Elements */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        <img
+          src="/lockscreen-bg.jpg"
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover opacity-40"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-background-dark/35 via-background-dark/60 to-background-dark/80"></div>
         <div className="absolute -top-[10%] -left-[10%] w-[50%] h-[50%] bg-primary/10 rounded-full blur-[120px]"></div>
         <div className="absolute bottom-[10%] -right-[10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-[100px]"></div>
       </div>
 
       <main className="relative z-10 w-full max-w-sm flex flex-col items-center">
         <div className="text-center mb-10">
-          <div className="w-16 h-16 bg-primary/20 rounded-xl flex items-center justify-center mx-auto mb-4 border border-primary/30 shadow-lg shadow-primary/10">
-            <AppLogo className="w-11 h-11" />
-          </div>
+          <img src="/full-logo.svg" alt="Bar Controller Pro" className="w-[216px] mx-auto mb-4" />
           <h1 className="text-white text-2xl font-bold tracking-tight mb-2">Acesso ao sistema</h1>
           <p className="text-white/50 text-sm">CPF e senha para entrar</p>
         </div>
@@ -51,27 +55,27 @@ const LockScreen: React.FC<LockScreenProps> = ({ onAuthSuccess }) => {
         <div className="bg-white/5 backdrop-blur-3xl w-full rounded-2xl p-8 border border-white/10 shadow-2xl">
           <div className="space-y-4 mb-6">
             <div>
-              <label className="text-[10px] text-white/50 uppercase font-semibold tracking-widest">CPF</label>
-              <input
+              <FormLabel>CPF</FormLabel>
+              <FormInput
                 type="text"
                 name="username"
                 autoComplete="username"
                 value={formatCPF(cpf)}
                 onChange={(e) => setCpf(e.target.value)}
                 placeholder="000.000.000-00"
-                className="mt-2 w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-sm"
+                className="mt-2"
               />
             </div>
             <div>
-              <label className="text-[10px] text-white/50 uppercase font-semibold tracking-widest">Senha</label>
-              <input
+              <FormLabel>Senha</FormLabel>
+              <FormInput
                 type="password"
                 name="current-password"
                 autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••"
-                className="mt-2 w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-sm"
+                className="mt-2"
               />
             </div>
           </div>
@@ -80,14 +84,14 @@ const LockScreen: React.FC<LockScreenProps> = ({ onAuthSuccess }) => {
             <div className="mb-4 text-xs text-red-400 font-semibold">{error}</div>
           )}
 
-          <button 
+          <FormButton 
             onClick={handleSubmit}
-            className="w-full bg-primary hover:bg-primary/90 text-background-dark font-bold py-4 rounded-xl transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2 active:scale-95 disabled:opacity-60"
+            className="w-full py-4 shadow-lg shadow-primary/20"
             disabled={loading}
           >
             {loading ? 'Entrando...' : 'ENTRAR'}
             <span className="material-icons-round text-sm">arrow_forward</span>
-          </button>
+          </FormButton>
           
           <div className="mt-6 text-white/40 text-[10px] font-medium text-center uppercase tracking-widest">
             Primeiro acesso: CPF 000.000.000-00 • senha admin123

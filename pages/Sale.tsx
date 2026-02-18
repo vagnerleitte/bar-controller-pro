@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { AppState, Product, Order, Customer, MonthlyAccount } from '../types';
 import { getMonthlyAvailableLimit, getMonthlyBalance } from '../utils/monthly';
 import AppLogo from '../components/AppLogo';
+import { FormButton, FormInput, FormSelect } from '../components/form';
 
 interface SaleProps {
   // Fix: navigate function signature should accept optional customerId to match App.tsx definition
@@ -261,12 +262,12 @@ const Sale: React.FC<SaleProps> = ({
         <div className="px-5 pb-4 space-y-4">
           <div className="relative">
             <span className="material-icons-round absolute left-4 top-1/2 -translate-y-1/2 text-white/30">search</span>
-            <input 
+            <FormInput
               type="text" 
               placeholder="Buscar por nome ou SKU..." 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-white/5 border-none rounded-xl py-3.5 pl-12 pr-4 text-sm focus:ring-1 focus:ring-primary/50"
+              className="pl-12 pr-4 border-none"
             />
           </div>
         </div>
@@ -431,12 +432,12 @@ const Sale: React.FC<SaleProps> = ({
             <div className="mb-4">
               <div className="relative">
                 <span className="material-icons-round absolute left-4 top-1/2 -translate-y-1/2 text-white/30">search</span>
-                <input
+                <FormInput
                   type="text"
                   value={customerSearch}
                   onChange={(e) => setCustomerSearch(e.target.value)}
                   placeholder="Buscar cliente..."
-                  className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-sm"
+                  className="pl-12 pr-4"
                 />
               </div>
             </div>
@@ -518,37 +519,36 @@ const Sale: React.FC<SaleProps> = ({
                 ))}
               </div>
             )}
-            <select
+            <FormSelect
               value={paymentMethod}
               onChange={(e) => {
                 setPaymentMethod(e.target.value as 'PIX' | 'Dinheiro' | 'Cartão');
                 setCashReceived('');
               }}
-              className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-sm mb-4"
+              className="mb-4"
             >
               <option value="PIX">PIX</option>
               <option value="Dinheiro">Dinheiro</option>
               <option value="Cartão">Cartão</option>
-            </select>
-            <input
+            </FormSelect>
+            <FormInput
               type="number"
               min={0}
               step="0.01"
               value={immediatePaymentAmount}
               onChange={(e) => setImmediatePaymentAmount(e.target.value)}
               placeholder="Valor desta parcela"
-              className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-sm mb-4"
+              className="mb-4"
             />
             {paymentMethod === 'Dinheiro' && (
               <div className="mb-4 space-y-2">
-                <input
+                <FormInput
                   type="number"
                   min={0}
                   step="0.01"
                   value={cashReceived}
                   onChange={(e) => setCashReceived(e.target.value)}
                   placeholder="Valor recebido"
-                  className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-sm"
                 />
                 {cashReceived.trim().length > 0 && amountBeingPaidNow > 0 && (
                   <p className={`text-xs font-bold ${cashDelta < 0 ? 'text-orange-300' : 'text-primary'}`}>

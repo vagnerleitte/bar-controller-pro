@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { AppState, Customer, MonthlyAccount, Product } from '../types';
 import { getDaysSinceCycleStart } from '../utils/monthly';
 import AppLogo from '../components/AppLogo';
+import { FormButton, FormInput, FormSelect } from '../components/form';
 
 interface MonthlyDetailProps {
   navigate: (page: AppState, customerId?: string | null) => void;
@@ -151,29 +152,28 @@ const MonthlyDetail: React.FC<MonthlyDetailProps> = ({
         <section className="bg-white/5 border border-white/10 p-4 rounded-2xl space-y-4">
           <h3 className="font-bold text-sm uppercase tracking-widest text-white/60">Adicionar Itens</h3>
           <div className="space-y-3">
-            <select
+            <FormSelect
               value={selectedProductId}
               onChange={(e) => setSelectedProductId(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-sm"
             >
               {products.map(p => (
                 <option key={p.id} value={p.id}>{p.name} - R$ {p.price.toFixed(2)}</option>
               ))}
-            </select>
+            </FormSelect>
             <div className="flex items-center gap-3">
-              <input
+              <FormInput
                 type="number"
                 min={1}
                 value={quantity}
                 onChange={(e) => setQuantity(Number(e.target.value))}
-                className="w-24 bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-sm"
+                className="w-24"
               />
-              <button
+              <FormButton
                 onClick={handleAddItem}
-                className="flex-1 h-12 rounded-xl font-black text-sm uppercase tracking-widest bg-primary text-background-dark"
+                className="flex-1 h-12 font-black text-sm uppercase tracking-widest"
               >
                 Adicionar
-              </button>
+              </FormButton>
             </div>
           </div>
           <p className="text-[10px] text-white/40 uppercase tracking-widest">
@@ -207,53 +207,59 @@ const MonthlyDetail: React.FC<MonthlyDetailProps> = ({
         <section className="bg-white/5 border border-white/10 p-4 rounded-2xl space-y-4">
           <h3 className="font-bold text-sm uppercase tracking-widest text-white/60">Pagamento</h3>
           <div className="grid grid-cols-2 gap-3">
-            <button
+            <FormButton
               onClick={() => handlePayment(requiredUnlock)}
+              variant="contained"
+              tone="primary"
               className="h-12 rounded-xl bg-primary/20 text-primary font-bold text-xs uppercase tracking-widest"
             >
               Pagar 50%
-            </button>
-            <button
+            </FormButton>
+            <FormButton
               onClick={() => handlePayment(balance)}
-              className="h-12 rounded-xl bg-primary text-background-dark font-bold text-xs uppercase tracking-widest"
+              className="h-12 font-bold text-xs uppercase tracking-widest"
             >
               Pagar Total
-            </button>
+            </FormButton>
           </div>
           {blocked && (
-            <button
+            <FormButton
               onClick={() => setPaymentAmount(requiredUnlock.toFixed(2))}
-              className="w-full h-10 rounded-xl bg-white/5 border border-white/10 text-primary font-bold text-xs uppercase tracking-widest"
+              variant="outlined"
+              tone="primary"
+              className="w-full h-10 font-bold text-xs uppercase tracking-widest"
             >
               Preencher mínimo para desbloqueio
-            </button>
+            </FormButton>
           )}
           <div className="flex items-center gap-3">
-            <input
+            <FormInput
               type="number"
               min={0}
               step="0.01"
               value={paymentAmount}
               onChange={(e) => setPaymentAmount(e.target.value)}
-              className="flex-1 bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-sm"
+              className="flex-1"
               placeholder="Pagamento parcial"
             />
-            <select
+            <FormSelect
               value={paymentMethod}
               onChange={(e) => setPaymentMethod(e.target.value as 'PIX' | 'Dinheiro' | 'Cartão')}
-              className="bg-white/5 border border-white/10 rounded-xl py-3 px-3 text-sm"
+              className="px-3"
             >
               <option value="PIX">PIX</option>
               <option value="Dinheiro">Dinheiro</option>
               <option value="Cartão">Cartão</option>
-            </select>
+            </FormSelect>
           </div>
-          <button
+          <FormButton
             onClick={() => handlePayment(Number(paymentAmount))}
-            className="w-full h-12 rounded-xl font-black text-sm uppercase tracking-widest bg-white/10 text-white"
+            variant="outlined"
+            tone="neutral"
+            className="w-full h-12 font-black text-sm uppercase tracking-widest"
           >
             Registrar Pagamento
-          </button>
+          </FormButton>
         </section>
 
         <section className="bg-white/5 border border-white/10 p-4 rounded-2xl space-y-4">

@@ -5,6 +5,7 @@ import { getMonthlyBalance } from '../utils/monthly';
 import BottomNav from '../components/BottomNav';
 import TopMenu from '../components/TopMenu';
 import AppLogo from '../components/AppLogo';
+import { FormInput } from '../components/form';
 
 interface HomeProps {
   navigate: (page: AppState, customerId?: string | null) => void;
@@ -181,7 +182,7 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, mont
             <h3 className="text-lg font-bold">Comandas abertas</h3>
             <div className="flex items-center gap-2">
               <div className={`relative overflow-hidden transition-all duration-200 ${showSearch ? 'w-44' : 'w-0'}`}>
-                <input
+                <FormInput
                   type="text"
                   value={orderSearch}
                   onChange={(e) => setOrderSearch(e.target.value)}
@@ -189,7 +190,7 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, mont
                     if (orderSearch.trim().length === 0) setShowSearch(false);
                   }}
                   placeholder="Buscar..."
-                  className="w-full bg-white/5 border border-primary/10 rounded-lg py-1.5 pl-8 pr-2 text-xs"
+                  className="rounded-lg py-1.5 pl-8 pr-2 text-xs border-primary/10"
                 />
                 <span className="material-icons-round absolute left-2 top-1/2 -translate-y-1/2 text-white/30 text-sm">search</span>
               </div>
@@ -215,19 +216,19 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, mont
           </div>
           {showFilters && (
             <div className="mb-4 grid grid-cols-2 gap-3">
-              <input
+              <FormInput
                 type="text"
                 value={tableFilter}
                 onChange={(e) => setTableFilter(e.target.value)}
                 placeholder="Filtrar por mesa"
-                className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 px-3 text-sm"
+                className="py-2.5 px-3 text-sm"
               />
-              <input
+              <FormInput
                 type="text"
                 value={customerFilter}
                 onChange={(e) => setCustomerFilter(e.target.value)}
                 placeholder="Filtrar por cliente"
-                className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 px-3 text-sm"
+                className="py-2.5 px-3 text-sm"
               />
             </div>
           )}

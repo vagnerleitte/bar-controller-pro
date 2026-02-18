@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { AppState, Product, UserRole } from '../types';
 import BottomNav from '../components/BottomNav';
 import AppLogo from '../components/AppLogo';
+import { FormInput, FormLabel, FormSelect } from '../components/form';
 
 interface InventoryProps {
   // Fix: navigate function signature should accept optional customerId for consistency
@@ -375,7 +376,7 @@ const Inventory: React.FC<InventoryProps> = ({ navigate, products, setProducts, 
           
           <div className="relative group">
             <span className="material-icons-round absolute left-4 top-1/2 -translate-y-1/2 text-white/30 group-focus-within:text-primary">search</span>
-            <input 
+            <FormInput 
               type="text" 
               placeholder="Buscar produtos..." 
               value={search}
@@ -385,7 +386,7 @@ const Inventory: React.FC<InventoryProps> = ({ navigate, products, setProducts, 
           </div>
 
           <div className="grid grid-cols-3 gap-2 py-1">
-            <select
+            <FormSelect
               value={categoryFilter}
               onChange={(event) => setCategoryFilter(event.target.value)}
               className="bg-white/5 border border-white/10 rounded-xl py-2.5 px-3 text-[11px] font-bold text-white/80"
@@ -395,9 +396,9 @@ const Inventory: React.FC<InventoryProps> = ({ navigate, products, setProducts, 
                   {category === 'Todos' ? 'Categoria: Todos' : category}
                 </option>
               ))}
-            </select>
+            </FormSelect>
 
-            <select
+            <FormSelect
               value={stockFilter}
               onChange={(event) => setStockFilter(event.target.value as 'all' | 'ok' | 'low' | 'zero')}
               className="bg-white/5 border border-white/10 rounded-xl py-2.5 px-3 text-[11px] font-bold text-white/80"
@@ -406,9 +407,9 @@ const Inventory: React.FC<InventoryProps> = ({ navigate, products, setProducts, 
               <option value="ok">Estoque OK</option>
               <option value="low">Estoque baixo</option>
               <option value="zero">Sem estoque</option>
-            </select>
+            </FormSelect>
 
-            <select
+            <FormSelect
               value={statusFilter}
               onChange={(event) => setStatusFilter(event.target.value as 'all' | 'active' | 'inactive')}
               className="bg-white/5 border border-white/10 rounded-xl py-2.5 px-3 text-[11px] font-bold text-white/80"
@@ -416,7 +417,7 @@ const Inventory: React.FC<InventoryProps> = ({ navigate, products, setProducts, 
               <option value="all">Status: Todos</option>
               <option value="active">Ativos</option>
               <option value="inactive">Inativos</option>
-            </select>
+            </FormSelect>
           </div>
         </div>
       </header>
@@ -524,7 +525,7 @@ const Inventory: React.FC<InventoryProps> = ({ navigate, products, setProducts, 
 
             <div className="space-y-3 mb-6">
               <p className="text-[11px] text-white/50 uppercase tracking-widest font-bold">Nova categoria</p>
-              <input
+              <FormInput
                 type="text"
                 value={newCategoryName}
                 onChange={(event) => setNewCategoryName(event.target.value)}
@@ -541,7 +542,7 @@ const Inventory: React.FC<InventoryProps> = ({ navigate, products, setProducts, 
 
             <div className="space-y-3">
               <p className="text-[11px] text-white/50 uppercase tracking-widest font-bold">Nova subcategoria</p>
-              <select
+              <FormSelect
                 value={categoryForSubcategory}
                 onChange={(event) => setCategoryForSubcategory(event.target.value)}
                 className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-sm"
@@ -550,8 +551,8 @@ const Inventory: React.FC<InventoryProps> = ({ navigate, products, setProducts, 
                 {categories.filter(category => category !== 'Todos').map(category => (
                   <option key={category} value={category}>{category}</option>
                 ))}
-              </select>
-              <input
+              </FormSelect>
+              <FormInput
                 type="text"
                 value={newSubcategoryName}
                 onChange={(event) => setNewSubcategoryName(event.target.value)}
@@ -583,21 +584,21 @@ const Inventory: React.FC<InventoryProps> = ({ navigate, products, setProducts, 
             </div>
 
             <div className="space-y-3">
-              <input
+              <FormInput
                 type="text"
                 value={productForm.name}
                 onChange={(event) => setProductForm(previous => ({ ...previous, name: event.target.value }))}
                 placeholder="Nome do produto"
                 className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-sm"
               />
-              <input
+              <FormInput
                 type="text"
                 value={productForm.sku}
                 onChange={(event) => setProductForm(previous => ({ ...previous, sku: event.target.value }))}
                 placeholder="SKU"
                 className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-sm"
               />
-              <select
+              <FormSelect
                 value={productForm.category}
                 onChange={(event) => setProductForm(previous => ({ ...previous, category: event.target.value, subcategory: '' }))}
                 className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-sm"
@@ -606,8 +607,8 @@ const Inventory: React.FC<InventoryProps> = ({ navigate, products, setProducts, 
                 {categories.filter(category => category !== 'Todos').map(category => (
                   <option key={category} value={category}>{category}</option>
                 ))}
-              </select>
-              <select
+              </FormSelect>
+              <FormSelect
                 value={productForm.subcategory}
                 onChange={(event) => setProductForm(previous => ({ ...previous, subcategory: event.target.value }))}
                 className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-sm"
@@ -616,16 +617,16 @@ const Inventory: React.FC<InventoryProps> = ({ navigate, products, setProducts, 
                 {availableSubcategories.map(subcategory => (
                   <option key={subcategory} value={subcategory}>{subcategory}</option>
                 ))}
-              </select>
+              </FormSelect>
               <div className="grid grid-cols-2 gap-3">
-                <input
+                <FormInput
                   type="text"
                   value={productForm.location}
                   onChange={(event) => setProductForm(previous => ({ ...previous, location: event.target.value }))}
                   placeholder="Local"
                   className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-sm"
                 />
-                <select
+                <FormSelect
                   value={productForm.unit}
                   onChange={(event) => setProductForm(previous => ({ ...previous, unit: event.target.value }))}
                   className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-sm"
@@ -633,17 +634,17 @@ const Inventory: React.FC<InventoryProps> = ({ navigate, products, setProducts, 
                   {['un', 'pct', 'cx', 'garrafa', 'lata', 'ml', 'litro', 'kg', 'par'].map(unit => (
                     <option key={unit} value={unit}>{unit}</option>
                   ))}
-                </select>
+                </FormSelect>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <input
+                <FormInput
                   type="number"
                   value={productForm.price}
                   onChange={(event) => setProductForm(previous => ({ ...previous, price: event.target.value }))}
                   placeholder="Preço de venda"
                   className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-sm"
                 />
-                <input
+                <FormInput
                   type="number"
                   value={productForm.cost}
                   onChange={(event) => setProductForm(previous => ({ ...previous, cost: event.target.value }))}
@@ -653,8 +654,8 @@ const Inventory: React.FC<InventoryProps> = ({ navigate, products, setProducts, 
               </div>
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-[10px] font-bold uppercase tracking-widest text-white/45 mb-1">Atual</label>
-                  <input
+                  <FormLabel className="block text-[10px] font-bold uppercase tracking-widest text-white/45 mb-1">Atual</FormLabel>
+                  <FormInput
                     type="number"
                     value={productForm.stock}
                     onChange={(event) => setProductForm(previous => ({ ...previous, stock: event.target.value }))}
@@ -663,8 +664,8 @@ const Inventory: React.FC<InventoryProps> = ({ navigate, products, setProducts, 
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold uppercase tracking-widest text-white/45 mb-1">Mínimo</label>
-                  <input
+                  <FormLabel className="block text-[10px] font-bold uppercase tracking-widest text-white/45 mb-1">Mínimo</FormLabel>
+                  <FormInput
                     type="number"
                     value={productForm.minStock}
                     onChange={(event) => setProductForm(previous => ({ ...previous, minStock: event.target.value }))}
@@ -673,8 +674,8 @@ const Inventory: React.FC<InventoryProps> = ({ navigate, products, setProducts, 
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold uppercase tracking-widest text-white/45 mb-1">Ideal</label>
-                  <input
+                  <FormLabel className="block text-[10px] font-bold uppercase tracking-widest text-white/45 mb-1">Ideal</FormLabel>
+                  <FormInput
                     type="number"
                     value={productForm.idealStock}
                     onChange={(event) => setProductForm(previous => ({ ...previous, idealStock: event.target.value }))}
@@ -683,14 +684,14 @@ const Inventory: React.FC<InventoryProps> = ({ navigate, products, setProducts, 
                   />
                 </div>
               </div>
-              <select
+              <FormSelect
                 value={productForm.status}
                 onChange={(event) => setProductForm(previous => ({ ...previous, status: event.target.value as 'active' | 'inactive' }))}
                 className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-sm"
               >
                 <option value="active">Ativo</option>
                 <option value="inactive">Inativo</option>
-              </select>
+              </FormSelect>
             </div>
 
             <div className="mt-5 space-y-2">
@@ -726,7 +727,7 @@ const Inventory: React.FC<InventoryProps> = ({ navigate, products, setProducts, 
               </button>
             </div>
             <div className="space-y-3">
-              <select
+              <FormSelect
                 value={adjustProductId}
                 onChange={(e) => setAdjustProductId(e.target.value)}
                 className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-sm"
@@ -734,8 +735,8 @@ const Inventory: React.FC<InventoryProps> = ({ navigate, products, setProducts, 
                 {products.map(product => (
                   <option key={product.id} value={product.id}>{product.name}</option>
                 ))}
-              </select>
-              <input
+              </FormSelect>
+              <FormInput
                 type="number"
                 min={1}
                 step={1}
@@ -744,7 +745,7 @@ const Inventory: React.FC<InventoryProps> = ({ navigate, products, setProducts, 
                 placeholder="Quantidade"
                 className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-sm"
               />
-              <input
+              <FormInput
                 type="text"
                 value={adjustNote}
                 onChange={(e) => setAdjustNote(e.target.value)}

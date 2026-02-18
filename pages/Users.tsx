@@ -3,6 +3,7 @@ import { AppState, User, UserRole } from '../types';
 import BottomNav from '../components/BottomNav';
 import { createUser, formatCPF, normalizeCPF, resetUserPassword, updateUserRole } from '../services/auth';
 import AppLogo from '../components/AppLogo';
+import { FormButton, FormInput, FormSelect } from '../components/form';
 
 interface UsersProps {
   navigate: (page: AppState, customerId?: string | null) => void;
@@ -92,48 +93,44 @@ const Users: React.FC<UsersProps> = ({ navigate, users, setUsers, currentUser })
         <section className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-4">
           <h2 className="text-sm font-bold uppercase tracking-widest text-white/60">Novo usuário</h2>
           <div className="grid grid-cols-1 gap-3">
-            <input
+            <FormInput
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Nome completo"
-              className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-sm"
               disabled={!canManage}
             />
-            <input
+            <FormInput
               type="text"
               value={formatCPF(cpf)}
               onChange={(e) => setCpf(e.target.value)}
               placeholder="CPF"
-              className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-sm"
               disabled={!canManage}
             />
-            <select
+            <FormSelect
               value={role}
               onChange={(e) => setRole(e.target.value as UserRole)}
-              className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-sm"
               disabled={!canManage}
             >
               <option value="seller">Vendedor</option>
               <option value="admin">Admin</option>
-            </select>
-            <input
+            </FormSelect>
+            <FormInput
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Senha"
-              className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-sm"
               disabled={!canManage}
             />
           </div>
           {error && <div className="text-xs text-red-400 font-semibold">{error}</div>}
-          <button
+          <FormButton
             onClick={handleCreate}
             disabled={!canManage || saving}
-            className="w-full bg-primary hover:bg-primary/90 text-background-dark font-bold py-3 rounded-xl transition-all shadow-lg shadow-primary/20 disabled:opacity-60"
+            className="w-full shadow-lg shadow-primary/20"
           >
             {saving ? 'Salvando...' : 'Criar usuário'}
-          </button>
+          </FormButton>
           {!canManage && (
             <div className="text-[10px] text-white/40 uppercase tracking-widest">
               Somente administradores podem criar usuários.
@@ -153,22 +150,24 @@ const Users: React.FC<UsersProps> = ({ navigate, users, setUsers, currentUser })
                 <p className="text-[10px] text-primary/70 uppercase font-semibold mt-1">{user.role === 'admin' ? 'Admin' : 'Vendedor'}</p>
               </div>
               <div className="flex items-center gap-2">
-                <select
+                <FormSelect
                   value={user.role}
                   onChange={(e) => handleRoleChange(user.id, e.target.value as UserRole)}
-                  className="bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-[10px]"
+                  className="rounded-lg px-2 py-1 text-[10px]"
                   disabled={!canManage || user.id === currentUser?.id}
                 >
                   <option value="seller">Vendedor</option>
                   <option value="admin">Admin</option>
-                </select>
-                <button
+                </FormSelect>
+                <FormButton
                   onClick={() => handleResetPassword(user.id)}
                   disabled={!canManage}
-                  className="text-primary text-[10px] font-bold uppercase tracking-widest"
+                  variant="link"
+                  tone="primary"
+                  className="text-[10px] font-bold uppercase tracking-widest px-0 py-0"
                 >
                   Resetar senha
-                </button>
+                </FormButton>
               </div>
             </div>
           ))}
