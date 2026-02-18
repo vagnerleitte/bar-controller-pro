@@ -26,6 +26,7 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, mont
   const [customerFilter, setCustomerFilter] = useState('');
   const [syncingSeed, setSyncingSeed] = useState(false);
   const [seedToast, setSeedToast] = useState<string | null>(null);
+  const [topMenuOpen, setTopMenuOpen] = useState(false);
 
   const filteredOrders = orders.filter(order => {
     const customer = customers.find(c => c.id === order.customerId);
@@ -95,22 +96,61 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, mont
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <button 
-              onClick={() => setPrivacyMode(!privacyMode)}
-              className="w-14 h-14 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary"
-              title={privacyMode ? 'Mostrar valores' : 'Ocultar valores'}
-            >
-              <span className="material-icons-round text-[30px]">{privacyMode ? 'visibility' : 'visibility_off'}</span>
-            </button>
+          <div className="relative">
             <button
-              onClick={handleForceSeedSync}
-              disabled={syncingSeed}
-              className="w-12 h-12 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary disabled:opacity-50"
-              title="Forçar sync seed"
+              onClick={() => setTopMenuOpen(prev => !prev)}
+              className="w-12 h-12 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary"
+              title="Mais ações"
             >
-              <span className="material-icons-round text-xl">{syncingSeed ? 'sync' : 'sync_alt'}</span>
+              <span className="material-icons-round text-2xl">more_vert</span>
             </button>
+            {topMenuOpen && (
+              <div className="absolute right-0 mt-2 w-56 bg-[#083626] border border-primary/25 rounded-2xl shadow-2xl z-50 overflow-hidden">
+                <button
+                  onClick={() => {
+                    setPrivacyMode(!privacyMode);
+                    setTopMenuOpen(false);
+                  }}
+                  className="w-full px-4 py-3 text-left text-sm font-bold text-white hover:bg-primary/10 flex items-center gap-2"
+                >
+                  <span className="material-icons-round text-base text-primary">{privacyMode ? 'visibility' : 'visibility_off'}</span>
+                  {privacyMode ? 'Mostrar valores' : 'Ocultar valores'}
+                </button>
+                <button
+                  onClick={async () => {
+                    setTopMenuOpen(false);
+                    await handleForceSeedSync();
+                  }}
+                  disabled={syncingSeed}
+                  className="w-full px-4 py-3 text-left text-sm font-bold text-white hover:bg-primary/10 flex items-center gap-2 disabled:opacity-50"
+                >
+                  <span className="material-icons-round text-base text-primary">{syncingSeed ? 'sync' : 'sync_alt'}</span>
+                  {syncingSeed ? 'Sincronizando seed...' : 'Forçar sync seed'}
+                </button>
+                {currentUser?.role === 'admin' && (
+                  <button
+                    onClick={() => {
+                      navigate('users');
+                      setTopMenuOpen(false);
+                    }}
+                    className="w-full px-4 py-3 text-left text-sm font-bold text-white hover:bg-primary/10 flex items-center gap-2"
+                  >
+                    <span className="material-icons-round text-base text-primary">admin_panel_settings</span>
+                    Gerenciar usuários
+                  </button>
+                )}
+                <button
+                  onClick={() => {
+                    setTopMenuOpen(false);
+                    navigate('lock');
+                  }}
+                  className="w-full px-4 py-3 text-left text-sm font-bold text-red-300 hover:bg-red-500/10 flex items-center gap-2 border-t border-white/10"
+                >
+                  <span className="material-icons-round text-base text-red-300">logout</span>
+                  Sair
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </header>
@@ -152,7 +192,7 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, mont
                   </div>
                 </div>
                 <div className="p-3">
-                  <p className="text-sm font-black text-primary truncate">R$ {privacyMode ? '••••' : product.price.toFixed(2)}</p>
+                  <p className="text-sm font-black text-primary truncate">R$ {product.price.toFixed(2)}</p>
                   <p className="text-[11px] text-white/75 font-semibold truncate">{product.name}</p>
                 </div>
               </button>
@@ -272,16 +312,6 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, mont
           <button className="ml-3 text-primary" onClick={() => setSeedToast(null)}>OK</button>
         </div>
       )}
-      {currentUser?.role === 'admin' && (
-        <button
-          onClick={() => navigate('users')}
-          className="fixed bottom-28 left-6 w-12 h-12 rounded-full bg-primary/10 border border-primary/30 text-primary flex items-center justify-center z-40"
-          title="Usuários"
-        >
-          <span className="material-icons-round">admin_panel_settings</span>
-        </button>
-      )}
-
       <BottomNav activePage="home" navigate={navigate} currentUserRole={currentUser?.role} />
     </div>
   );

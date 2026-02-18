@@ -456,7 +456,7 @@ const Inventory: React.FC<InventoryProps> = ({ navigate, products, setProducts, 
               </div>
               <div className="text-right shrink-0">
                 <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest mb-1">Preço</p>
-                <p className={`text-lg font-extrabold text-primary ${privacyMode ? 'privacy-blur' : ''}`}>
+                <p className="text-lg font-extrabold text-primary">
                   R$ {product.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </p>
               </div>

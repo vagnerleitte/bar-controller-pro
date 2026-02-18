@@ -236,7 +236,7 @@ export function clearAuthSession() {
 }
 
 export async function restoreAuthUser(allUsers: User[]) {
-  if (AUTH_MODE === 'api') {
+  const readSessionUser = () => {
     const raw = localStorage.getItem(AUTH_SESSION_KEY);
     if (!raw) return null;
     try {
@@ -246,12 +246,31 @@ export async function restoreAuthUser(allUsers: User[]) {
     } catch {
       return null;
     }
+  };
+
+  if (AUTH_MODE === 'api') {
+    return readSessionUser();
   }
 
   const userId = localStorage.getItem('auth_user_id');
-  if (!userId) return null;
-  const user = allUsers.find(u => u.id === userId);
-  return user ? { ...user, tenantId: user.tenantId || DEFAULT_TENANT_ID } : null;
+  if (userId) {
+    const user = allUsers.find(u => u.id === userId);
+    if (user) {
+      const normalized = { ...user, tenantId: user.tenantId || DEFAULT_TENANT_ID };
+      upsertSessionUser(normalized);
+      return normalized;
+    }
+  }
+
+  const sessionUser = readSessionUser();
+  if (!sessionUser) return null;
+  const syncedUser = allUsers.find(u => u.id === sessionUser.id);
+  const resolved = syncedUser
+    ? { ...syncedUser, tenantId: syncedUser.tenantId || DEFAULT_TENANT_ID }
+    : sessionUser;
+  localStorage.setItem('auth_user_id', resolved.id);
+  upsertSessionUser(resolved);
+  return resolved;
 }
 
 export function isApiAuthMode() {

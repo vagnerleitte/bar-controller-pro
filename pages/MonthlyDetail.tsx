@@ -192,7 +192,7 @@ const MonthlyDetail: React.FC<MonthlyDetailProps> = ({
                     <p className="text-sm font-bold">{product?.name || 'Item'}</p>
                     <p className="text-[10px] text-white/40 uppercase font-medium">{item.quantity} un • R$ {item.priceAtSale.toFixed(2)}</p>
                   </div>
-                  <div className={`text-sm font-extrabold ${privacyMode ? 'privacy-blur' : ''}`}>
+                  <div className="text-sm font-extrabold">
                     R$ {(item.quantity * item.priceAtSale).toFixed(2)}
                   </div>
                 </div>

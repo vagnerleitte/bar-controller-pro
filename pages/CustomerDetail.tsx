@@ -208,7 +208,7 @@ const CustomerDetail: React.FC<CustomerDetailProps> = ({
                       <p className="text-[10px] text-white/30 uppercase font-medium">{item.quantity} un • R$ {item.priceAtSale.toFixed(2)}</p>
                     </div>
                   </div>
-                  <div className={`font-extrabold text-sm ${privacyMode ? 'privacy-blur' : ''}`}>
+                  <div className="font-extrabold text-sm">
                     R$ {(item.quantity * item.priceAtSale).toFixed(2)}
                   </div>
                   <button
