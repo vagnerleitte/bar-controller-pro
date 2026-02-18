@@ -20,6 +20,8 @@ interface HomeProps {
 }
 
 const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, monthlyAccounts, onForceSeedSync, onSelectTopProduct, privacyMode, setPrivacyMode, currentUser }) => {
+  const MAX_PRODUCTS_PER_PAGE = 16;
+  const TOP_PRODUCTS_LIMIT = 8;
   const [orderSearch, setOrderSearch] = useState('');
   const [showSearch, setShowSearch] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
@@ -68,10 +70,22 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, mont
       .filter(Boolean) as { product: Product; quantity: number }[];
 
     if (list.length === 0) {
-      return products.slice(0, 12).map(product => ({ product, quantity: 0 }));
+      return products.slice(0, TOP_PRODUCTS_LIMIT).map(product => ({ product, quantity: 0 }));
     }
-    return list.slice(0, 12);
+    return list.slice(0, TOP_PRODUCTS_LIMIT);
   }, [orders, products]);
+
+  const recommendedProducts = useMemo(() => {
+    const topIds = new Set(topProducts.map(entry => entry.product.id));
+    const recommendedLimit = Math.max(0, MAX_PRODUCTS_PER_PAGE - topProducts.length);
+    const pool = products
+      .filter(product => product.status === 'active' && !topIds.has(product.id))
+      .slice(0, recommendedLimit)
+      .map(product => ({ product, quantity: 0 }));
+
+    if (pool.length > 0) return pool;
+    return topProducts.slice(0, recommendedLimit);
+  }, [products, topProducts, MAX_PRODUCTS_PER_PAGE]);
 
   const handleForceSeedSync = async () => {
     const confirmed = confirm('Isso vai substituir clientes, produtos, comandas e mensalistas pelos dados de seed. Continuar?');
@@ -89,7 +103,7 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, mont
 
   return (
     <div className={`pb-32 min-h-screen ${isDaylight ? 'bg-gradient-to-b from-[#e9fff2] via-[#f6fff9] to-[#e6f9ef] text-[#062b17]' : 'bg-gradient-to-b from-[#022e22] via-[#012417] to-[#03150f]'}`}>
-      <header className={`sticky top-0 z-50 backdrop-blur-xl border-b border-primary/20 safe-area-top ${isDaylight ? 'bg-[#ecfff4]/92' : 'bg-[#022e22]/85'}`}>
+      <header className={`sticky top-0 z-50 backdrop-blur-xl safe-area-top ${isDaylight ? 'bg-[#ecfff4]/92' : 'bg-[#022e22]/85'}`}>
         <div className="px-5 pt-5 pb-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="relative">
@@ -203,6 +217,26 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, mont
             {topProducts.map(({ product, quantity }) => (
               <button
                 key={product.id}
+                onClick={() => onSelectTopProduct(product.id)}
+                className="bg-[#083626] border border-primary/20 rounded-3xl overflow-hidden text-left active:scale-95 transition-transform h-44 relative"
+              >
+                <div className="h-28 bg-black/10 relative">
+                  <img src={product.image} className="w-full h-full object-cover" alt={product.name} />
+                  <div className="absolute top-2 right-2 bg-[#001710]/75 rounded-full w-9 h-9 text-[14px] font-extrabold text-white flex items-center justify-center">
+                    {quantity || 0}
+                  </div>
+                </div>
+                <div className="p-3">
+                  <p className="text-sm font-black text-primary truncate">R$ {product.price.toFixed(2)}</p>
+                  <p className="text-[11px] text-white/75 font-semibold truncate">{product.name}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+          <div className="mt-3 grid grid-cols-3 gap-3">
+            {recommendedProducts.map(({ product, quantity }) => (
+              <button
+                key={`rec_${product.id}`}
                 onClick={() => onSelectTopProduct(product.id)}
                 className="bg-[#083626] border border-primary/20 rounded-3xl overflow-hidden text-left active:scale-95 transition-transform h-44 relative"
               >
