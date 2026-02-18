@@ -14,12 +14,45 @@ import CustomerCreate from './pages/CustomerCreate';
 import MonthlyAccounts from './pages/MonthlyAccounts';
 import MonthlyDetail from './pages/MonthlyDetail';
 import Users from './pages/Users';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { getMonthlyBalance, getMonthlyAvailableLimit, isMonthlyBlocked } from './utils/monthly';
 import { db, DEFAULT_TENANT_ID, forceSyncSeedData, loadAll, seedIfEmpty } from './services/db';
 import { clearAuthSession, ensureDefaultAdmin, restoreAuthUser, upsertSessionUser } from './services/auth';
 
+const PAGE_TO_PATH: Record<AppState, string> = {
+  lock: '/lock',
+  home: '/',
+  sales: '/sales',
+  inventory: '/inventory',
+  reports: '/reports',
+  sale: '/sale',
+  customer_detail: '/customers/detail',
+  customers: '/customers',
+  customer_create: '/customers/new',
+  monthly_accounts: '/monthly',
+  monthly_detail: '/monthly/detail',
+  users: '/users'
+};
+
+const PATH_TO_PAGE: Record<string, AppState> = {
+  '/lock': 'lock',
+  '/': 'home',
+  '/sales': 'sales',
+  '/inventory': 'inventory',
+  '/reports': 'reports',
+  '/sale': 'sale',
+  '/customers/detail': 'customer_detail',
+  '/customers': 'customers',
+  '/customers/new': 'customer_create',
+  '/monthly': 'monthly_accounts',
+  '/monthly/detail': 'monthly_detail',
+  '/users': 'users'
+};
+
 const App: React.FC = () => {
-  const [currentPage, setCurrentPage] = useState<AppState>('lock');
+  const routerNavigate = useNavigate();
+  const location = useLocation();
+  const currentPage = PATH_TO_PAGE[location.pathname] || 'home';
   const [privacyMode, setPrivacyMode] = useState(true);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
@@ -95,14 +128,16 @@ const App: React.FC = () => {
         clearAuthSession();
         setCurrentUser(null);
         setCurrentTenantId(null);
-        setCurrentPage('lock');
+        routerNavigate(PAGE_TO_PATH.lock, { replace: true });
         return;
       }
 
       const tenantId = user.tenantId || DEFAULT_TENANT_ID;
       setCurrentTenantId(tenantId);
       setCurrentUser(user);
-      setCurrentPage('home');
+      if (location.pathname === PAGE_TO_PATH.lock) {
+        routerNavigate(PAGE_TO_PATH.home, { replace: true });
+      }
       loadTenantScopedData(tenantId);
     };
 
@@ -110,7 +145,7 @@ const App: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [dbReady, allUsers]);
+  }, [dbReady, allUsers, location.pathname, routerNavigate]);
 
   useEffect(() => {
     if (!dbReady || !currentTenantId) return;
@@ -187,7 +222,13 @@ const App: React.FC = () => {
   }, [users, dbReady, currentTenantId]);
 
   const navigate = (page: AppState, customerId: string | null = null) => {
-    if (customerId) setSelectedCustomerId(customerId);
+    const path = PAGE_TO_PATH[page] || PAGE_TO_PATH.home;
+    const params = new URLSearchParams();
+    const resolvedCustomerId = customerId || null;
+    if (resolvedCustomerId) {
+      setSelectedCustomerId(resolvedCustomerId);
+      params.set('customerId', resolvedCustomerId);
+    }
     if (page === 'lock') {
       clearAuthSession();
       setCurrentUser(null);
@@ -199,7 +240,7 @@ const App: React.FC = () => {
     if (page === 'reports' && currentUser?.role !== 'admin') {
       return;
     }
-    setCurrentPage(page);
+    routerNavigate(`${path}${params.toString() ? `?${params.toString()}` : ''}`);
   };
 
   const handleAuthSuccess = (user: User) => {
@@ -208,7 +249,7 @@ const App: React.FC = () => {
     setCurrentUser(normalizedUser);
     setCurrentTenantId(normalizedUser.tenantId);
     loadTenantScopedData(normalizedUser.tenantId);
-    setCurrentPage('home');
+    routerNavigate(PAGE_TO_PATH.home, { replace: true });
   };
 
   const handleForceSeedSync = async () => {
@@ -216,6 +257,16 @@ const App: React.FC = () => {
     await forceSyncSeedData(currentTenantId);
     await loadTenantScopedData(currentTenantId);
   };
+
+  useEffect(() => {
+    if (!dbReady) return;
+    if (!currentUser && currentPage !== 'lock') {
+      routerNavigate(PAGE_TO_PATH.lock, { replace: true });
+    }
+  }, [currentUser, currentPage, dbReady, routerNavigate]);
+
+  const routeCustomerId = new URLSearchParams(location.search).get('customerId');
+  const effectiveCustomerId = routeCustomerId || selectedCustomerId;
 
   const renderPage = () => {
     if (!dbReady) {
@@ -267,8 +318,8 @@ const App: React.FC = () => {
           />
         );
       case 'monthly_detail': {
-        const account = monthlyAccounts.find(a => a.customerId === selectedCustomerId);
-        const customer = customers.find(c => c.id === selectedCustomerId);
+        const account = monthlyAccounts.find(a => a.customerId === effectiveCustomerId);
+        const customer = customers.find(c => c.id === effectiveCustomerId);
         return (
           <MonthlyDetail
             navigate={navigate}
@@ -279,7 +330,7 @@ const App: React.FC = () => {
             setPrivacyMode={setPrivacyMode}
             onAddItem={(productId, quantity) => {
               setMonthlyAccounts(prev => prev.map(a => {
-                if (a.customerId !== selectedCustomerId) return a;
+                if (a.customerId !== effectiveCustomerId) return a;
                 const product = products.find(p => p.id === productId);
                 if (!product) return a;
                 const newItem: MonthlyItem = {
@@ -298,7 +349,7 @@ const App: React.FC = () => {
               const isBlocked = isMonthlyBlocked(account);
               const unlockApplied = isBlocked && amount >= prevBalance * 0.5;
               setMonthlyAccounts(prev => prev.map(a => {
-                if (a.customerId !== selectedCustomerId) return a;
+                if (a.customerId !== effectiveCustomerId) return a;
                 const newPayment: MonthlyPayment = {
                   id: `mp_${Date.now()}`,
                   amount,
@@ -348,6 +399,7 @@ const App: React.FC = () => {
         return (
           <CustomerCreate
             navigate={navigate}
+            customers={customers}
             onCreate={(customer) => setCustomers(prev => [...prev, { ...customer, updatedAt: Date.now() }])}
           />
         );
@@ -401,8 +453,8 @@ const App: React.FC = () => {
           />
         );
       case 'customer_detail':
-        const order = activeOrders.find(o => o.customerId === selectedCustomerId);
-        const customer = customers.find(c => c.id === selectedCustomerId);
+        const order = activeOrders.find(o => o.customerId === effectiveCustomerId);
+        const customer = customers.find(c => c.id === effectiveCustomerId);
         return (
           <CustomerDetail 
             navigate={navigate} 
@@ -541,16 +593,6 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-background-dark text-white font-sans overflow-x-hidden selection:bg-primary/30">
       {renderPage()}
-      {currentPage !== 'lock' && (
-        <button
-          onClick={() => navigate('lock')}
-          className="fixed top-4 right-4 z-[120] w-10 h-10 rounded-full bg-primary/15 border border-primary/30 text-primary flex items-center justify-center"
-          title="Sair"
-          aria-label="Sair"
-        >
-          <span className="material-icons-round text-xl">logout</span>
-        </button>
-      )}
       {currentPage !== 'lock' && (
         <div className="fixed bottom-2 left-1/2 -translate-x-1/2 w-32 h-1 bg-white/20 rounded-full z-[100] pointer-events-none"></div>
       )}
