@@ -34,7 +34,8 @@
       (function () {
         try {
           var mode = localStorage.getItem('app_theme_mode') || 'default';
-          document.documentElement.setAttribute('data-theme', mode === 'high-contrast' ? 'high-contrast' : 'default');
+          var resolved = mode === 'high-contrast' || mode === 'daylight' ? mode : 'default';
+          document.documentElement.setAttribute('data-theme', resolved);
         } catch (e) {
           document.documentElement.setAttribute('data-theme', 'default');
         }

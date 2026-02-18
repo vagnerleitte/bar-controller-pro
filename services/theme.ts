@@ -1,4 +1,4 @@
-export type ThemeMode = 'default' | 'high-contrast';
+export type ThemeMode = 'default' | 'high-contrast' | 'daylight';
 
 const STORAGE_KEY = 'app_theme_mode';
 const TOKENS_KEY = 'app_theme_tokens';
@@ -10,7 +10,9 @@ export function applyThemeMode(mode: ThemeMode) {
 
 export function getStoredThemeMode(): ThemeMode {
   const raw = localStorage.getItem(STORAGE_KEY);
-  return raw === 'high-contrast' ? 'high-contrast' : 'default';
+  if (raw === 'high-contrast') return 'high-contrast';
+  if (raw === 'daylight') return 'daylight';
+  return 'default';
 }
 
 export function applyCustomThemeTokens(tokens: Record<string, string>) {

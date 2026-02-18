@@ -1,9 +1,10 @@
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { AppState, Order, Customer, Product, User, MonthlyAccount } from '../types';
 import BottomNav from '../components/BottomNav';
 import AppLogo from '../components/AppLogo';
 import { FormInput } from '../components/form';
+import { applyThemeMode, getStoredThemeMode, ThemeMode } from '../services/theme';
 
 interface HomeProps {
   navigate: (page: AppState, customerId?: string | null) => void;
@@ -27,6 +28,13 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, mont
   const [syncingSeed, setSyncingSeed] = useState(false);
   const [seedToast, setSeedToast] = useState<string | null>(null);
   const [topMenuOpen, setTopMenuOpen] = useState(false);
+  const [themeMode, setThemeMode] = useState<ThemeMode>('default');
+
+  useEffect(() => {
+    setThemeMode(getStoredThemeMode());
+  }, []);
+
+  const isDaylight = themeMode === 'daylight';
 
   const filteredOrders = orders.filter(order => {
     const customer = customers.find(c => c.id === order.customerId);
@@ -80,8 +88,8 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, mont
   };
 
   return (
-    <div className="pb-32 min-h-screen bg-gradient-to-b from-[#022e22] via-[#012417] to-[#03150f]">
-      <header className="sticky top-0 z-50 backdrop-blur-xl bg-[#022e22]/85 border-b border-primary/20 safe-area-top">
+    <div className={`pb-32 min-h-screen ${isDaylight ? 'bg-gradient-to-b from-[#e9fff2] via-[#f6fff9] to-[#e6f9ef] text-[#062b17]' : 'bg-gradient-to-b from-[#022e22] via-[#012417] to-[#03150f]'}`}>
+      <header className={`sticky top-0 z-50 backdrop-blur-xl border-b border-primary/20 safe-area-top ${isDaylight ? 'bg-[#ecfff4]/92' : 'bg-[#022e22]/85'}`}>
         <div className="px-5 pt-5 pb-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="relative">
@@ -97,21 +105,34 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, mont
             </div>
           </div>
           <div className="relative">
-            <button
-              onClick={() => setTopMenuOpen(prev => !prev)}
-              className="w-12 h-12 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary"
-              title="Mais ações"
-            >
-              <span className="material-icons-round text-2xl">more_vert</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  const nextMode: ThemeMode = isDaylight ? 'default' : 'daylight';
+                  applyThemeMode(nextMode);
+                  setThemeMode(nextMode);
+                }}
+                className="w-12 h-12 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary"
+                title={isDaylight ? 'Modo padrão' : 'Modo sol'}
+              >
+                <span className="material-icons-round text-xl">{isDaylight ? 'dark_mode' : 'wb_sunny'}</span>
+              </button>
+              <button
+                onClick={() => setTopMenuOpen(prev => !prev)}
+                className="w-12 h-12 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary"
+                title="Mais ações"
+              >
+                <span className="material-icons-round text-2xl">more_vert</span>
+              </button>
+            </div>
             {topMenuOpen && (
-              <div className="absolute right-0 mt-2 w-56 bg-[#083626] border border-primary/25 rounded-2xl shadow-2xl z-50 overflow-hidden">
+              <div className={`absolute right-0 mt-2 w-56 border border-primary/25 rounded-2xl shadow-2xl z-50 overflow-hidden ${isDaylight ? 'bg-[#f5fff9]' : 'bg-[#083626]'}`}>
                 <button
                   onClick={() => {
                     setPrivacyMode(!privacyMode);
                     setTopMenuOpen(false);
                   }}
-                  className="w-full px-4 py-3 text-left text-sm font-bold text-white hover:bg-primary/10 flex items-center gap-2"
+                  className={`w-full px-4 py-3 text-left text-sm font-bold hover:bg-primary/10 flex items-center gap-2 ${isDaylight ? 'text-[#062b17]' : 'text-white'}`}
                 >
                   <span className="material-icons-round text-base text-primary">{privacyMode ? 'visibility' : 'visibility_off'}</span>
                   {privacyMode ? 'Mostrar valores' : 'Ocultar valores'}
@@ -122,7 +143,7 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, mont
                     await handleForceSeedSync();
                   }}
                   disabled={syncingSeed}
-                  className="w-full px-4 py-3 text-left text-sm font-bold text-white hover:bg-primary/10 flex items-center gap-2 disabled:opacity-50"
+                  className={`w-full px-4 py-3 text-left text-sm font-bold hover:bg-primary/10 flex items-center gap-2 disabled:opacity-50 ${isDaylight ? 'text-[#062b17]' : 'text-white'}`}
                 >
                   <span className="material-icons-round text-base text-primary">{syncingSeed ? 'sync' : 'sync_alt'}</span>
                   {syncingSeed ? 'Sincronizando seed...' : 'Forçar sync seed'}
@@ -133,7 +154,7 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, mont
                       navigate('users');
                       setTopMenuOpen(false);
                     }}
-                    className="w-full px-4 py-3 text-left text-sm font-bold text-white hover:bg-primary/10 flex items-center gap-2"
+                    className={`w-full px-4 py-3 text-left text-sm font-bold hover:bg-primary/10 flex items-center gap-2 ${isDaylight ? 'text-[#062b17]' : 'text-white'}`}
                   >
                     <span className="material-icons-round text-base text-primary">admin_panel_settings</span>
                     Gerenciar usuários
