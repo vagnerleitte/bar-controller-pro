@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { User } from '../types';
 import { login, formatCPF, normalizeCPF } from '../services/auth';
 import { FormButton, FormInput, FormLabel } from '../components/form';
@@ -11,18 +11,26 @@ interface LockScreenProps {
 const LockScreen: React.FC<LockScreenProps> = ({ onAuthSuccess }) => {
   const [cpf, setCpf] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const cpfInputRef = useRef<HTMLInputElement>(null);
+  const passwordInputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = async () => {
     if (loading) return;
     setError(null);
-    if (normalizeCPF(cpf).length !== 11 || password.trim().length < 4) {
+    const cpfRaw = cpfInputRef.current?.value ?? cpf;
+    const passwordRaw = passwordInputRef.current?.value ?? password;
+    setCpf(cpfRaw);
+    setPassword(passwordRaw);
+
+    if (normalizeCPF(cpfRaw).length !== 11 || passwordRaw.trim().length < 4) {
       setError('Informe CPF válido e senha.');
       return;
     }
     setLoading(true);
-    const { user, error } = await login(cpf, password);
+    const { user, error } = await login(cpfRaw, passwordRaw);
     setLoading(false);
     if (!user) {
       setError(error || 'Falha no login.');
@@ -48,7 +56,7 @@ const LockScreen: React.FC<LockScreenProps> = ({ onAuthSuccess }) => {
       <main className="relative z-10 w-full max-w-sm flex flex-col items-center">
         <div className="text-center mb-10">
           <img src="/full-logo.svg" alt="Bar Controller Pro" className="w-[216px] mx-auto mb-4" />
-          <h1 className="text-white text-2xl font-bold tracking-tight mb-2">Acesso ao sistema</h1>
+          <h1 className="text-white text-[12px] font-bold tracking-tight mb-2">Acesso ao sistema</h1>
           <p className="text-white/50 text-sm">CPF e senha para entrar</p>
         </div>
 
@@ -57,6 +65,7 @@ const LockScreen: React.FC<LockScreenProps> = ({ onAuthSuccess }) => {
             <div>
               <FormLabel>CPF</FormLabel>
               <FormInput
+                ref={cpfInputRef}
                 type="text"
                 name="username"
                 autoComplete="username"
@@ -68,15 +77,28 @@ const LockScreen: React.FC<LockScreenProps> = ({ onAuthSuccess }) => {
             </div>
             <div>
               <FormLabel>Senha</FormLabel>
-              <FormInput
-                type="password"
-                name="current-password"
-                autoComplete="current-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••"
-                className="mt-2"
-              />
+              <div className="relative mt-2">
+                <FormInput
+                  ref={passwordInputRef}
+                  type={showPassword ? 'text' : 'password'}
+                  name="current-password"
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••"
+                  className="pr-12"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute inset-y-0 right-0 px-3 text-white/60 hover:text-white transition-colors"
+                  aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                >
+                  <span className="material-icons-round text-[18px]">
+                    {showPassword ? 'visibility_off' : 'visibility'}
+                  </span>
+                </button>
+              </div>
             </div>
           </div>
 

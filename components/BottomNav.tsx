@@ -16,8 +16,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ activePage, navigate, currentUser
     { id: 'monthly_accounts', label: 'Mensal', icon: 'event_repeat' },
     { id: 'inventory', label: 'Estoque', icon: 'inventory_2' },
     ...(currentUserRole === 'admin' ? [{ id: 'reports' as AppState, label: 'Relatórios', icon: 'analytics' }] : []),
-    ...(currentUserRole === 'admin' ? [{ id: 'users' as AppState, label: 'Usuários', icon: 'admin_panel_settings' }] : []),
-    { id: 'lock', label: 'Sair', icon: 'logout' }
+    ...(currentUserRole === 'admin' ? [{ id: 'users' as AppState, label: 'Usuários', icon: 'admin_panel_settings' }] : [])
   ];
 
   return (

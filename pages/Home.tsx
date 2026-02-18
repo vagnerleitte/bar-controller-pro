@@ -1,9 +1,7 @@
 
 import React, { useMemo, useState } from 'react';
 import { AppState, Order, Customer, Product, User, MonthlyAccount } from '../types';
-import { getMonthlyBalance } from '../utils/monthly';
 import BottomNav from '../components/BottomNav';
-import TopMenu from '../components/TopMenu';
 import AppLogo from '../components/AppLogo';
 import { FormInput } from '../components/form';
 
@@ -43,12 +41,6 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, mont
     return matchesSearch && matchesTable && matchesCustomer;
   });
   const filteredOpenOrders = filteredOrders.filter(order => order.status === 'open');
-  const filteredClosedOrders = filteredOrders.filter(order => order.status === 'closed');
-  const monthlyOpen = monthlyAccounts
-    .map(account => ({ account, balance: getMonthlyBalance(account) }))
-    .filter(entry => entry.balance > 0)
-    .slice(0, 6);
-
   const topProducts = useMemo(() => {
     const counter = new Map<string, number>();
     orders.forEach(order => {
@@ -87,47 +79,39 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, mont
   };
 
   return (
-    <div className="pb-32">
-      <header className="sticky top-0 z-50 bg-background-dark/80 backdrop-blur-xl border-b border-primary/10 safe-area-top">
-        <div className="px-5 py-4 flex items-center justify-between">
-          <div className="flex flex-col">
-            <div className="flex items-center gap-3">
-              <AppLogo className="w-9 h-9" />
-              <h1 className="text-2xl font-extrabold tracking-tight">Início</h1>
-              <span className="bg-primary/10 text-primary text-[10px] font-bold px-2 py-0.5 rounded-full border border-primary/20">OFFLINE</span>
-            </div>
-            <p className="text-xs text-primary/60 font-medium uppercase tracking-widest mt-0.5">Gestão de Bar</p>
-          </div>
+    <div className="pb-32 min-h-screen bg-gradient-to-b from-[#022e22] via-[#012417] to-[#03150f]">
+      <header className="sticky top-0 z-50 backdrop-blur-xl bg-[#022e22]/85 border-b border-primary/20 safe-area-top">
+        <div className="px-5 pt-5 pb-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
+            <div className="relative">
+              <AppLogo className="w-11 h-11 border-2 border-primary rounded-full p-1 bg-[#063c2a]" />
+              <span className="absolute -bottom-2 -right-1 bg-primary text-[#022114] text-[10px] font-black px-2 py-0.5 rounded-full leading-none">TOP</span>
+            </div>
+            <div>
+              <h1 className="text-[17px] leading-none font-black tracking-tight">Painel Boteco</h1>
+              <p className="text-primary text-xl font-semibold mt-1 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-primary shadow-[0_0_10px] shadow-primary/70"></span>
+                Operante
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
             <button 
               onClick={() => setPrivacyMode(!privacyMode)}
-              className="w-10 h-10 flex items-center justify-center rounded-full bg-primary text-background-dark shadow-lg shadow-primary/20 transition-transform active:scale-90"
+              className="w-14 h-14 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary"
+              title={privacyMode ? 'Mostrar valores' : 'Ocultar valores'}
             >
-              <span className="material-icons-round text-xl">{privacyMode ? 'visibility' : 'visibility_off'}</span>
+              <span className="material-icons-round text-[30px]">{privacyMode ? 'visibility' : 'visibility_off'}</span>
             </button>
-            {currentUser?.role === 'admin' && (
-              <button
-                onClick={() => navigate('users')}
-                className="w-10 h-10 flex items-center justify-center rounded-full bg-primary/10 border border-primary/20 text-primary"
-              >
-                <span className="material-icons-round text-xl">admin_panel_settings</span>
-              </button>
-            )}
             <button
               onClick={handleForceSeedSync}
               disabled={syncingSeed}
-              className="w-10 h-10 flex items-center justify-center rounded-full bg-primary/10 border border-primary/20 text-primary disabled:opacity-50"
+              className="w-12 h-12 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary disabled:opacity-50"
               title="Forçar sync seed"
             >
               <span className="material-icons-round text-xl">{syncingSeed ? 'sync' : 'sync_alt'}</span>
             </button>
-            <button className="w-10 h-10 flex items-center justify-center rounded-full bg-primary/10 border border-primary/20 text-primary">
-              <span className="material-icons-round text-xl">notifications</span>
-            </button>
           </div>
-        </div>
-        <div className="px-5 pb-4">
-          <TopMenu active="list" navigate={navigate} />
         </div>
       </header>
 
@@ -135,51 +119,50 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, mont
         <section className="mt-6 grid grid-cols-2 gap-3">
           <button
             onClick={() => navigate('sale')}
-            className="h-16 rounded-2xl bg-primary text-background-dark font-black text-sm uppercase tracking-widest"
+            className="w-full h-24 rounded-[30px] bg-primary text-[#042317] font-black text-[14px] tracking-tight flex items-center justify-center gap-2 shadow-[0_16px_40px_rgba(26,232,111,0.25)]"
           >
-            Nova venda
+            <span className="material-icons-round text-[13px]">point_of_sale</span>
+            Venda avulsa
           </button>
           <button
             onClick={() => navigate('customers')}
-            className="h-16 rounded-2xl bg-white/10 border border-white/20 text-white font-black text-sm uppercase tracking-widest"
+            className="w-full h-24 rounded-[30px] bg-[#083d2b] border border-primary/20 text-primary font-extrabold text-[14px] tracking-tight flex items-center justify-center gap-2"
           >
-            Abrir comanda
+            <span className="material-icons-round text-[14px]">add_circle</span>
+            Abrir Comanda
           </button>
         </section>
 
-        {/* Top Products Mini Grid */}
-        <section className="mt-6">
+        <section className="mt-8">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold">Mais Vendidos</h3>
+            <h3 className="text-xl font-black uppercase tracking-[0.14em] text-white/65">Produtos mais vendidos</h3>
+            <span className="text-primary text-base font-bold flex items-center gap-1">Hoje <span className="material-icons-round text-base">expand_more</span></span>
           </div>
           <div className="grid grid-cols-3 gap-3">
             {topProducts.map(({ product, quantity }) => (
               <button
                 key={product.id}
                 onClick={() => onSelectTopProduct(product.id)}
-                className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden text-left active:scale-95 transition-transform h-32"
+                className="bg-[#083626] border border-primary/20 rounded-3xl overflow-hidden text-left active:scale-95 transition-transform h-44 relative"
               >
-                <div className="h-20 bg-white/10 relative">
+                <div className="h-28 bg-black/10 relative">
                   <img src={product.image} className="w-full h-full object-cover" alt={product.name} />
-                  <div className="absolute top-2 right-2 bg-background-dark/70 rounded-full px-2 py-1 text-[10px] font-bold text-white">
-                    R$ {product.price.toFixed(2)}
+                  <div className="absolute top-2 right-2 bg-[#001710]/75 rounded-full w-9 h-9 text-[14px] font-extrabold text-white flex items-center justify-center">
+                    {quantity || 0}
                   </div>
                 </div>
                 <div className="p-3">
-                  <p className="text-xs font-bold truncate">{product.name}</p>
-                  <p className="text-[9px] text-white/40 uppercase font-medium">
-                    {quantity > 0 ? `${quantity} vendidos` : 'Sem histórico'}
-                  </p>
+                  <p className="text-sm font-black text-primary truncate">R$ {privacyMode ? '••••' : product.price.toFixed(2)}</p>
+                  <p className="text-[11px] text-white/75 font-semibold truncate">{product.name}</p>
                 </div>
               </button>
             ))}
           </div>
         </section>
 
-        {/* Active Accounts Grid */}
         <section className="mt-10">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold">Comandas abertas</h3>
+            <h3 className="text-xl font-black uppercase tracking-[0.12em] text-white/65">Comandas abertas ({filteredOpenOrders.length})</h3>
             <div className="flex items-center gap-2">
               <div className={`relative overflow-hidden transition-all duration-200 ${showSearch ? 'w-44' : 'w-0'}`}>
                 <FormInput
@@ -190,7 +173,7 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, mont
                     if (orderSearch.trim().length === 0) setShowSearch(false);
                   }}
                   placeholder="Buscar..."
-                  className="rounded-lg py-1.5 pl-8 pr-2 text-xs border-primary/10"
+                  className="rounded-xl py-2 pl-8 pr-2 text-xs border-primary/20 bg-[#083626]"
                 />
                 <span className="material-icons-round absolute left-2 top-1/2 -translate-y-1/2 text-white/30 text-sm">search</span>
               </div>
@@ -202,13 +185,13 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, mont
                   }
                   setShowSearch(true);
                 }}
-                className="w-8 h-8 rounded-lg bg-primary/5 border border-primary/10 flex items-center justify-center text-primary"
+                className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary"
               >
                 <span className="material-icons-round text-sm">search</span>
               </button>
               <button
                 onClick={() => setShowFilters(v => !v)}
-                className="w-8 h-8 rounded-lg bg-primary/5 border border-primary/10 flex items-center justify-center text-primary"
+                className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary"
               >
                 <span className="material-icons-round text-sm">filter_list</span>
               </button>
@@ -232,7 +215,7 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, mont
               />
             </div>
           )}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-3">
             {filteredOpenOrders.map(order => {
               const customer = customers.find(c => c.id === order.customerId);
               const consumption = order.items.reduce((acc, i) => acc + (i.priceAtSale * i.quantity), 0);
@@ -240,22 +223,25 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, mont
               const balance = consumption - paid;
 
               return (
-                <div 
+                <div
                   key={order.id} 
                   onClick={() => navigate('customer_detail', order.customerId)}
-                  className="bg-primary/5 border border-primary/10 rounded-2xl p-4 flex flex-col justify-between h-40 active:bg-primary/10 transition-colors shadow-lg"
+                  className="bg-[#083626] border border-primary/25 rounded-[28px] px-4 py-3 flex items-center justify-between active:bg-[#0a4631] transition-colors shadow-lg"
                 >
-                  <div>
-                    <div className="flex justify-between items-start">
-                      <span className="text-[10px] font-bold text-primary/50 uppercase tracking-widest">#{order.table || '00'}</span>
-                      <span className={`w-2 h-2 rounded-full shadow-[0_0_8px] ${order.status === 'open' ? 'bg-primary shadow-primary/50' : 'bg-orange-500 shadow-orange-500/50'}`}></span>
+                  <div className="flex items-center gap-3">
+                    <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center text-primary font-black text-xl">
+                      {(customer?.name || 'CA').split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase()}
                     </div>
-                    <h4 className="mt-2 font-bold text-sm truncate">{customer?.name || 'Cliente Anon.'}</h4>
-                    <p className="text-[10px] text-white/40 uppercase font-medium">Há {Math.floor(Math.random() * 59) + 1} min</p>
+                    <div>
+                      <h4 className="font-black text-2xl leading-tight truncate max-w-[165px]">{customer?.name || 'Cliente Anon.'}</h4>
+                      <p className="text-sm text-primary/80 font-semibold flex items-center gap-1">
+                        <span className="w-2 h-2 rounded-full bg-primary"></span>
+                        Mesa {order.table || '00'}
+                      </p>
+                    </div>
                   </div>
-                  <div className="mt-auto">
-                    <p className="text-[10px] text-primary/70 font-bold uppercase tracking-widest">Saldo</p>
-                    <p className={`text-xl font-extrabold text-white leading-none ${privacyMode ? 'privacy-blur' : ''}`}>
+                  <div>
+                    <p className={`text-3xl font-black text-primary leading-none ${privacyMode ? 'privacy-blur' : ''}`}>
                       R$ {balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </p>
                   </div>
@@ -263,83 +249,14 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, mont
               );
             })}
             {filteredOpenOrders.length === 0 && (
-              <div className="col-span-2 text-center text-white/40 text-sm py-6">
+              <div className="text-center text-white/40 text-sm py-6">
                 Nenhuma comanda aberta encontrada.
               </div>
             )}
           </div>
         </section>
 
-        <section className="mt-10">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold">Comandas Finalizadas</h3>
-            <span className="text-[10px] bg-white/5 px-2 py-1 rounded-full font-bold text-white/50 uppercase tracking-widest">
-              {filteredClosedOrders.length}
-            </span>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            {filteredClosedOrders.map(order => {
-              const customer = customers.find(c => c.id === order.customerId);
-              const consumption = order.items.reduce((acc, i) => acc + (i.priceAtSale * i.quantity), 0);
-              return (
-                <div
-                  key={order.id}
-                  className="bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-col justify-between h-36 opacity-90"
-                >
-                  <div>
-                    <div className="flex justify-between items-start">
-                      <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">#{order.table || '00'}</span>
-                      <span className="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px] shadow-primary/50"></span>
-                    </div>
-                    <h4 className="mt-2 font-bold text-sm truncate">{customer?.name || 'Cliente Anon.'}</h4>
-                    <p className="text-[10px] text-white/35 uppercase font-medium">Comanda encerrada</p>
-                  </div>
-                  <div className="mt-auto">
-                    <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest">Total consumido</p>
-                    <p className={`text-lg font-extrabold text-white leading-none ${privacyMode ? 'privacy-blur' : ''}`}>
-                      R$ {consumption.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-            {filteredClosedOrders.length === 0 && (
-              <div className="col-span-2 text-center text-white/40 text-sm py-6">
-                Nenhuma comanda finalizada encontrada.
-              </div>
-            )}
-          </div>
-        </section>
-
-        <section className="mt-10">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold">Mensalistas em aberto</h3>
-            <button
-              onClick={() => navigate('monthly_accounts')}
-              className="text-[10px] text-primary uppercase tracking-widest font-bold"
-            >
-              Ver todos
-            </button>
-          </div>
-          <div className="space-y-3">
-            {monthlyOpen.map(({ account, balance }) => {
-              const customer = customers.find(c => c.id === account.customerId);
-              return (
-                <button
-                  key={account.id}
-                  onClick={() => navigate('monthly_detail', account.customerId)}
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center justify-between text-left"
-                >
-                  <p className="text-sm font-bold">{customer?.name || 'Cliente'}</p>
-                  <p className={`text-sm font-extrabold ${privacyMode ? 'privacy-blur' : ''}`}>R$ {balance.toFixed(2)}</p>
-                </button>
-              );
-            })}
-            {monthlyOpen.length === 0 && (
-              <div className="text-center text-white/40 text-sm py-2">Nenhum mensalista em aberto.</div>
-            )}
-          </div>
-        </section>
+        <section className="mt-12 mb-8" />
       </main>
 
       <button 
@@ -354,6 +271,15 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, mont
           {seedToast}
           <button className="ml-3 text-primary" onClick={() => setSeedToast(null)}>OK</button>
         </div>
+      )}
+      {currentUser?.role === 'admin' && (
+        <button
+          onClick={() => navigate('users')}
+          className="fixed bottom-28 left-6 w-12 h-12 rounded-full bg-primary/10 border border-primary/30 text-primary flex items-center justify-center z-40"
+          title="Usuários"
+        >
+          <span className="material-icons-round">admin_panel_settings</span>
+        </button>
       )}
 
       <BottomNav activePage="home" navigate={navigate} currentUserRole={currentUser?.role} />

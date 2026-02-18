@@ -76,7 +76,7 @@ const Users: React.FC<UsersProps> = ({ navigate, users, setUsers, currentUser })
           <div>
             <div className="flex items-center gap-3">
               <AppLogo className="w-9 h-9" />
-              <h1 className="text-2xl font-extrabold tracking-tight">Usuários</h1>
+              <h1 className="text-[12px] font-extrabold tracking-tight">Usuários</h1>
             </div>
             <p className="text-xs text-primary/60 font-medium uppercase tracking-widest mt-0.5">Admin e vendedores</p>
           </div>

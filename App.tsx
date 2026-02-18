@@ -542,6 +542,16 @@ const App: React.FC = () => {
     <div className="min-h-screen bg-background-dark text-white font-sans overflow-x-hidden selection:bg-primary/30">
       {renderPage()}
       {currentPage !== 'lock' && (
+        <button
+          onClick={() => navigate('lock')}
+          className="fixed top-4 right-4 z-[120] w-10 h-10 rounded-full bg-primary/15 border border-primary/30 text-primary flex items-center justify-center"
+          title="Sair"
+          aria-label="Sair"
+        >
+          <span className="material-icons-round text-xl">logout</span>
+        </button>
+      )}
+      {currentPage !== 'lock' && (
         <div className="fixed bottom-2 left-1/2 -translate-x-1/2 w-32 h-1 bg-white/20 rounded-full z-[100] pointer-events-none"></div>
       )}
     </div>

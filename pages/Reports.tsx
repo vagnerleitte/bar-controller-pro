@@ -73,7 +73,7 @@ const Reports: React.FC<ReportsProps> = ({ navigate, orders, monthlyAccounts, pr
           </div>
           <div className="flex items-center gap-3">
             <AppLogo className="w-10 h-10" />
-            <h1 className="text-4xl font-extrabold tracking-tight">Relatórios</h1>
+            <h1 className="text-[18px] font-extrabold tracking-tight">Relatórios</h1>
           </div>
         </div>
       </header>

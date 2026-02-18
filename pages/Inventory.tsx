@@ -351,7 +351,7 @@ const Inventory: React.FC<InventoryProps> = ({ navigate, products, setProducts, 
           </div>
           <div className="flex items-center gap-3">
             <AppLogo className="w-10 h-10" />
-            <h1 className="text-3xl font-extrabold tracking-tight">Estoque</h1>
+            <h1 className="text-[15px] font-extrabold tracking-tight">Estoque</h1>
           </div>
           <div className="grid grid-cols-2 gap-2">
             <button
