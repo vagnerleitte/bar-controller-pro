@@ -204,7 +204,11 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, mont
         <section className="mt-6 grid grid-cols-3 gap-3">
           <button
             onClick={() => navigate('sale')}
-            className="w-full h-24 rounded-[30px] bg-primary text-white font-black text-[16px] tracking-tight flex items-center justify-center gap-2 shadow-[0_16px_40px_rgba(26,232,111,0.25)]"
+            className={`w-full h-24 rounded-[30px] text-white font-black text-[16px] tracking-tight flex items-center justify-center gap-2 ${
+              isDaylight
+                ? 'bg-[#0c5e43] shadow-[0_14px_30px_rgba(10,92,65,0.28)]'
+                : 'bg-[#065137] shadow-[0_16px_34px_rgba(4,42,29,0.55)]'
+            }`}
           >
             <span className="material-icons-round text-[15px]">point_of_sale</span>
             Venda
