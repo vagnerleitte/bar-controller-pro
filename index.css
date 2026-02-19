@@ -238,3 +238,48 @@ body {
 .border-primary\/30 {
   border-color: rgb(19 236 109 / 0.46) !important;
 }
+
+/* Beach mode bottom tabbar: flat white background + darker inactive items */
+[data-theme='daylight'] .bottom-nav {
+  background: #ffffff !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-top-color: #8fa99a !important;
+}
+
+[data-theme='daylight'] .bottom-nav-item-inactive {
+  color: #3f5a4c !important;
+}
+
+[data-theme='daylight'] .bottom-nav-item-inactive:hover {
+  color: #213a2f !important;
+}
+
+/* Daylight: inventory compact list readability */
+[data-theme='daylight'] .inventory-list {
+  background: #ffffff !important;
+  border-color: #8fa99a !important;
+}
+
+[data-theme='daylight'] .inventory-list-head {
+  color: #3f5a4c !important;
+  border-bottom-color: #9eb3a7 !important;
+}
+
+[data-theme='daylight'] .inventory-list-row {
+  border-bottom-color: #d1ddd6 !important;
+}
+
+[data-theme='daylight'] .inventory-list-cell {
+  color: #173328 !important;
+}
+
+[data-theme='daylight'] .inventory-list-price {
+  color: #056b37 !important;
+}
+
+[data-theme='daylight'] .inventory-list-edit {
+  color: #173328 !important;
+  border-color: #90a79a !important;
+  background: #eef4f1 !important;
+}

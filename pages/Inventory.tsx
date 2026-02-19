@@ -21,6 +21,7 @@ const Inventory: React.FC<InventoryProps> = ({ navigate, products, setProducts, 
   const [categoryFilter, setCategoryFilter] = useState('Todos');
   const [stockFilter, setStockFilter] = useState<'all' | 'ok' | 'low' | 'zero'>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards');
   const [showProductModal, setShowProductModal] = useState(false);
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
@@ -347,6 +348,12 @@ const Inventory: React.FC<InventoryProps> = ({ navigate, products, setProducts, 
               >
                 <span className="material-icons-round">add</span>
               </button>
+              <button
+                onClick={() => setViewMode(previous => previous === 'cards' ? 'list' : 'cards')}
+                className="h-10 px-3 flex items-center justify-center rounded-full bg-white/5 text-white border border-white/10 text-[10px] font-bold uppercase tracking-widest"
+              >
+                {viewMode === 'cards' ? 'Lista' : 'Cards'}
+              </button>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -423,7 +430,7 @@ const Inventory: React.FC<InventoryProps> = ({ navigate, products, setProducts, 
       </header>
 
       <main className="p-4 space-y-4">
-        {filteredProducts.map(product => (
+        {viewMode === 'cards' ? filteredProducts.map(product => (
           <div
             key={product.id}
             className={`bg-white/5 border border-white/10 rounded-2xl p-4 transition-all shadow-lg ${
@@ -502,7 +509,38 @@ const Inventory: React.FC<InventoryProps> = ({ navigate, products, setProducts, 
               </div>
             </div>
           </div>
-        ))}
+        )) : (
+          <div className="inventory-list bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
+            <div className="inventory-list-head grid grid-cols-[1fr_2fr_1fr_1fr_1.4fr_auto] gap-2 px-3 py-2 border-b border-white/10 text-[10px] uppercase tracking-widest font-bold text-white/50">
+              <span>SKU</span>
+              <span>Nome</span>
+              <span>Custo</span>
+              <span>Venda</span>
+              <span>Categoria</span>
+              <span>Ação</span>
+            </div>
+            {filteredProducts.map(product => (
+              <div
+                key={product.id}
+                className={`inventory-list-row grid grid-cols-[1fr_2fr_1fr_1fr_1.4fr_auto] gap-2 px-3 py-2 border-b border-white/5 items-center text-xs ${
+                  product.status === 'inactive' ? 'opacity-60' : ''
+                }`}
+              >
+                <span className="inventory-list-cell font-bold text-white/80 truncate">{product.sku}</span>
+                <span className="inventory-list-cell font-semibold text-white truncate">{product.name}</span>
+                <span className="inventory-list-cell text-white/80">R$ {(product.cost || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                <span className="inventory-list-price font-bold text-primary">R$ {product.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                <span className="inventory-list-cell text-white/80 truncate">{product.category}</span>
+                <button
+                  onClick={() => openEditProduct(product)}
+                  className="inventory-list-edit h-8 px-2 rounded-lg bg-white/5 border border-white/10 text-[10px] font-bold uppercase tracking-wide"
+                >
+                  Editar
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
         {filteredProducts.length === 0 && (
           <div className="text-center text-white/40 text-sm py-8">Nenhum item encontrado para esse filtro.</div>
         )}
