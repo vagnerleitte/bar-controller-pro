@@ -207,7 +207,7 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, mont
             className={`w-full h-24 rounded-[30px] text-white font-black text-[16px] tracking-tight flex items-center justify-center gap-2 ${
               isDaylight
                 ? 'bg-[#0c5e43] shadow-[0_14px_30px_rgba(10,92,65,0.28)]'
-                : 'bg-[#065137] shadow-[0_16px_34px_rgba(4,42,29,0.55)]'
+                : 'bg-[#065137] border-2 border-[#13ec6d] shadow-[0_16px_34px_rgba(4,42,29,0.55)]'
             }`}
           >
             <span className="material-icons-round text-[15px]">point_of_sale</span>
@@ -216,18 +216,20 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, mont
           <button
             onClick={() => setShowComandaPicker(v => !v)}
             className={`w-full h-24 rounded-[30px] bg-transparent border-2 font-extrabold text-[16px] tracking-tight flex items-center justify-center gap-2 ${
-              isDaylight ? 'border-[#064127] text-[#05331f]' : 'border-primary/40 text-primary'
+              isDaylight ? 'border-[#064127] text-[#05331f]' : 'border-[#13ec6d] text-[#13ec6d] shadow-[0_0_0_1px_rgba(19,236,109,0.45)]'
             }`}
           >
             <span className="material-icons-round text-[16px]">list_alt</span>
-            Ver comanda
+            Ver
           </button>
           <button
             onClick={() => navigate('customers')}
-            className="w-full h-24 rounded-[30px] bg-[#0b4a35] border border-primary/20 text-white font-extrabold text-[16px] tracking-tight flex items-center justify-center gap-2"
+            className={`w-full h-24 rounded-[30px] bg-transparent border-2 font-extrabold text-[16px] tracking-tight flex items-center justify-center gap-2 ${
+              isDaylight ? 'border-[#064127] text-[#05331f]' : 'border-[#13ec6d] text-[#13ec6d] shadow-[0_0_0_1px_rgba(19,236,109,0.45)]'
+            }`}
           >
-            <span className="material-icons-round text-[16px]">add_circle</span>
-            Abrir comanda
+            <span className="material-icons-round text-[16px]">post_add</span>
+            Abrir
           </button>
         </section>
         <section className="mt-8">

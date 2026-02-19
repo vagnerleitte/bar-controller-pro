@@ -3,6 +3,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { AppState, Product, Order, Customer, MonthlyAccount } from '../types';
 import { getMonthlyAvailableLimit, getMonthlyBalance } from '../utils/monthly';
 import AppLogo from '../components/AppLogo';
+import ProductDetailSheet from '../components/ProductDetailSheet';
+import ProductSquareCard from '../components/ProductSquareCard';
 import { FormButton, FormInput, FormSelect } from '../components/form';
 
 interface SaleProps {
@@ -275,37 +277,13 @@ const Sale: React.FC<SaleProps> = ({
 
       <main className="flex-1 overflow-y-auto p-4 grid grid-cols-2 gap-4 pb-48">
         {filteredProducts.map(p => (
-          <div 
-            key={p.id} 
-            onClick={() => setSelectedProduct(p)}
-            className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden active:scale-95 transition-transform flex flex-col"
-          >
-            <div className="aspect-square bg-white/10 relative shrink-0">
-              <img src={p.image} className="w-full h-full object-cover relative z-0" alt={p.name} />
-              <div className="absolute top-2 right-2 bg-background-dark/60 ios-blur rounded-full px-2 py-1 flex items-center gap-1 border border-white/10 z-20">
-                <span className="text-[10px] font-bold text-white">R$ {p.price.toFixed(2)}</span>
-              </div>
-              {(p.stock ?? 0) <= 0 && (
-                <div className="absolute left-2 top-2 bg-red-500/80 rounded px-2 py-1 z-20">
-                  <p className="text-[9px] font-bold uppercase">Sem estoque</p>
-                </div>
-              )}
-              {(p.stock ?? 0) > 0 && (p.stock ?? 0) <= (p.minStock ?? 0) && (
-                <div className="absolute left-2 top-2 bg-orange-500/80 rounded px-2 py-1 z-20">
-                  <p className="text-[9px] font-bold uppercase">Baixo estoque</p>
-                </div>
-              )}
-              <div className="absolute left-2 right-2 bottom-2 bg-black/70 rounded-lg px-2 py-1 z-20">
-                <p className="text-xs font-bold text-white truncate">{p.name}</p>
-              </div>
-            </div>
-            <div className="p-3 space-y-2">
-              <div className="bg-background-dark/70 border border-white/10 rounded-lg px-2 py-1">
-                <h3 className="font-bold text-sm text-white truncate">{p.name}</h3>
-              </div>
-              <p className="text-[10px] text-primary font-bold">R$ {p.price.toFixed(2)}</p>
-              <p className="text-[10px] text-white/30 uppercase font-bold tracking-widest">{p.category}</p>
-              <p className="text-[10px] text-white/40 uppercase font-medium">Estoque: {p.stock ?? 0}</p>
+          <div key={p.id} className="relative w-full">
+            <div className="pt-[100%]"></div>
+            <div className="absolute inset-0">
+              <ProductSquareCard
+                product={p}
+                onClick={() => setSelectedProduct(p)}
+              />
             </div>
           </div>
         ))}
@@ -335,42 +313,20 @@ const Sale: React.FC<SaleProps> = ({
         </div>
       )}
 
-      {/* Bottom Sheet Modal */}
-      {selectedProduct && (
-        <div className="fixed inset-0 z-[100] flex items-end justify-center px-4 pb-4">
-          <div className="absolute inset-0 bg-background-dark/60 backdrop-blur-sm" onClick={() => setSelectedProduct(null)}></div>
-          <div className="relative w-full max-w-sm bg-surface-dark rounded-3xl border border-primary/20 shadow-2xl overflow-hidden transform transition-all">
-            <div className="w-12 h-1 bg-white/10 rounded-full mx-auto mt-4 mb-6"></div>
-            <div className="px-6 pb-10">
-              <div className="flex gap-4 items-center mb-8">
-                <div className="w-20 h-20 rounded-2xl overflow-hidden border border-white/10">
-                  <img src={selectedProduct.image} className="w-full h-full object-cover" alt={selectedProduct.name} />
-                </div>
-                <div>
-                  <h2 className="text-xl font-extrabold">{selectedProduct.name}</h2>
-                  <p className="text-primary font-bold">R$ {selectedProduct.price.toFixed(2)}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between bg-white/5 p-4 rounded-2xl border border-white/5">
-                <span className="font-bold text-sm text-white/60">Quantidade</span>
-                <div className="flex items-center gap-6">
-                  <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="w-10 h-10 rounded-full border border-primary/40 flex items-center justify-center text-primary"><span className="material-icons-round">remove</span></button>
-                  <span className="text-3xl font-black text-primary">{quantity}</span>
-                  <button onClick={() => setQuantity(q => q + 1)} className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-background-dark"><span className="material-icons-round">add</span></button>
-                </div>
-              </div>
-
-              <button 
-                onClick={handleAdd}
-                className="w-full mt-10 bg-primary text-background-dark font-black py-5 rounded-2xl shadow-xl shadow-primary/20 uppercase tracking-wider active:scale-95 transition-transform"
-              >
-                Adicionar ao Carrinho
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ProductDetailSheet
+        product={selectedProduct}
+        quantity={quantity}
+        onClose={() => setSelectedProduct(null)}
+        onDecrease={() => setQuantity(q => Math.max(1, q - 1))}
+        onIncrease={() => setQuantity(q => q + 1)}
+        onQuickAdd={(delta) =>
+          setQuantity(q => {
+            if (!selectedProduct || typeof selectedProduct.stock !== 'number') return q + delta;
+            return Math.min(selectedProduct.stock, q + delta);
+          })
+        }
+        onConfirm={handleAdd}
+      />
 
       {cartItems.length > 0 && (
         <div className="fixed bottom-0 left-0 right-0 p-5 bg-background-dark/90 backdrop-blur-2xl border-t border-white/10">
