@@ -2,7 +2,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { AppState, Product, Order, Customer, MonthlyAccount } from '../types';
 import { getMonthlyAvailableLimit, getMonthlyBalance } from '../utils/monthly';
-import AppLogo from '../components/AppLogo';
+import AppTopBar from '../components/AppTopBar';
 import ProductDetailSheet from '../components/ProductDetailSheet';
 import ProductSquareCard from '../components/ProductSquareCard';
 import { FormButton, FormInput, FormSelect } from '../components/form';
@@ -244,36 +244,31 @@ const Sale: React.FC<SaleProps> = ({
 
   return (
     <div className="h-screen overflow-hidden flex flex-col relative">
-      <header className="safe-area-top sticky top-0 bg-background-dark/80 backdrop-blur-xl z-50">
-        <div className="px-5 py-4 flex items-center justify-between">
-          <button onClick={() => navigate('home')} className="text-primary active:scale-90 transition-transform">
-            <span className="material-icons-round text-3xl">chevron_left</span>
-          </button>
-          <div className="flex items-center gap-3">
-            <AppLogo className="w-8 h-8" />
-            <h1 className="text-lg font-extrabold tracking-tight">Nova Venda</h1>
-          </div>
-          <button 
+      <AppTopBar
+        title="Nova Venda"
+        onBack={() => navigate('home')}
+        rightSlot={(
+          <button
             onClick={() => setShowScanner(true)}
             className="w-10 h-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary"
           >
             <span className="material-icons-round text-xl">qr_code_scanner</span>
           </button>
-        </div>
-        
+        )}
+      >
         <div className="px-5 pb-4 space-y-4">
           <div className="relative">
             <span className="material-icons-round absolute left-4 top-1/2 -translate-y-1/2 text-white/30">search</span>
             <FormInput
-              type="text" 
-              placeholder="Buscar por nome ou SKU..." 
+              type="text"
+              placeholder="Buscar por nome ou SKU..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-12 pr-4 border-none"
             />
           </div>
         </div>
-      </header>
+      </AppTopBar>
 
       <main className="flex-1 overflow-y-auto p-4 grid grid-cols-2 gap-4 pb-48">
         {filteredProducts.map(p => (

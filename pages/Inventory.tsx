@@ -2,7 +2,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { AppState, Product, UserRole } from '../types';
 import BottomNav from '../components/BottomNav';
-import AppLogo from '../components/AppLogo';
+import AppTopBar from '../components/AppTopBar';
 import { FormInput, FormLabel, FormSelect } from '../components/form';
 
 interface InventoryProps {
@@ -310,8 +310,8 @@ const Inventory: React.FC<InventoryProps> = ({ navigate, products, setProducts, 
 
   return (
     <div className="pb-32">
-      <header className="sticky top-0 z-50 bg-background-dark/80 backdrop-blur-xl safe-area-top">
-        <div className="px-5 py-4 flex flex-col gap-4">
+      <AppTopBar title="Estoque">
+        <div className="px-5 pb-4 flex flex-col gap-4">
           <div className="flex items-start justify-between gap-2">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
@@ -355,10 +355,6 @@ const Inventory: React.FC<InventoryProps> = ({ navigate, products, setProducts, 
                 {viewMode === 'cards' ? 'Lista' : 'Cards'}
               </button>
             </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <AppLogo className="w-10 h-10" />
-            <h1 className="text-[15px] font-extrabold tracking-tight">Estoque</h1>
           </div>
           <div className="grid grid-cols-2 gap-2">
             <button
@@ -427,7 +423,7 @@ const Inventory: React.FC<InventoryProps> = ({ navigate, products, setProducts, 
             </FormSelect>
           </div>
         </div>
-      </header>
+      </AppTopBar>
 
       <main className="p-4 space-y-4">
         {viewMode === 'cards' ? filteredProducts.map(product => (

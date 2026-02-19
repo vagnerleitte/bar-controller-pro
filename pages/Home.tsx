@@ -4,7 +4,7 @@ import { AppState, Order, Customer, Product, User, MonthlyAccount } from '../typ
 import BottomNav from '../components/BottomNav';
 import AppLogo from '../components/AppLogo';
 import { FormInput } from '../components/form';
-import { applyThemeMode, getStoredThemeMode, ThemeMode } from '../services/theme';
+import { getStoredThemeMode, ThemeMode } from '../services/theme';
 
 interface HomeProps {
   navigate: (page: AppState, customerId?: string | null) => void;
@@ -36,6 +36,11 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, mont
 
   useEffect(() => {
     setThemeMode(getStoredThemeMode());
+    const observer = new MutationObserver(() => {
+      setThemeMode(getStoredThemeMode());
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    return () => observer.disconnect();
   }, []);
 
   const isDaylight = themeMode === 'daylight';
@@ -130,17 +135,6 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, mont
           </div>
           <div className="relative">
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => {
-                  const nextMode: ThemeMode = isDaylight ? 'default' : 'daylight';
-                  applyThemeMode(nextMode);
-                  setThemeMode(nextMode);
-                }}
-                className="w-12 h-12 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary"
-                title={isDaylight ? 'Modo padrão' : 'Modo sol'}
-              >
-                <span className="material-icons-round text-xl">{isDaylight ? 'dark_mode' : 'wb_sunny'}</span>
-              </button>
               <button
                 onClick={() => setTopMenuOpen(prev => !prev)}
                 className="w-12 h-12 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary"
@@ -419,7 +413,7 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, mont
               value={comandaQuery}
               onChange={(e) => setComandaQuery(e.target.value)}
               placeholder="Buscar por mesa ou cliente..."
-              className="py-2.5 text-sm"
+              className="py-2.5 text-sm placeholder:text-white/35"
             />
             <div className="mt-3 max-h-64 overflow-y-auto space-y-2">
               {comandaOptions.map(order => {

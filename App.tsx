@@ -18,7 +18,8 @@ import HomeIndicatorBar from './components/HomeIndicatorBar';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getMonthlyBalance, getMonthlyAvailableLimit, isMonthlyBlocked } from './utils/monthly';
 import { db, DEFAULT_TENANT_ID, forceSyncSeedData, loadAll, seedIfEmpty } from './services/db';
-import { clearAuthSession, ensureDefaultAdmin, restoreAuthUser, upsertSessionUser } from './services/auth';
+import { clearAuthSession, ensureDefaultAdmin, logout, restoreAuthUser, upsertSessionUser } from './services/auth';
+import { applyThemeMode, getStoredThemeMode, ThemeMode } from './services/theme';
 
 const PAGE_TO_PATH: Record<AppState, string> = {
   lock: '/lock',
@@ -66,11 +67,16 @@ const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [currentTenantId, setCurrentTenantId] = useState<string | null>(null);
   const [dbReady, setDbReady] = useState(false);
+  const [themeMode, setThemeMode] = useState<ThemeMode>('default');
   const prevCustomersRef = useRef<Customer[]>([]);
   const prevProductsRef = useRef<Product[]>([]);
   const prevOrdersRef = useRef<Order[]>([]);
   const prevMonthlyRef = useRef<MonthlyAccount[]>([]);
   const prevUsersRef = useRef<User[]>([]);
+
+  useEffect(() => {
+    setThemeMode(getStoredThemeMode());
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -231,7 +237,7 @@ const App: React.FC = () => {
       params.set('customerId', resolvedCustomerId);
     }
     if (page === 'lock') {
-      clearAuthSession();
+      void logout();
       setCurrentUser(null);
       setCurrentTenantId(null);
     }
@@ -593,6 +599,21 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background-dark text-white font-sans overflow-x-hidden selection:bg-primary/30">
+      <button
+        type="button"
+        onClick={() => {
+          const nextMode: ThemeMode = themeMode === 'daylight' ? 'default' : 'daylight';
+          applyThemeMode(nextMode);
+          setThemeMode(nextMode);
+        }}
+        className="fixed top-5 right-20 sm:right-5 z-[300] w-11 h-11 rounded-full bg-primary/10 border border-primary/30 text-primary flex items-center justify-center backdrop-blur-xl"
+        title={themeMode === 'daylight' ? 'Modo padrão' : 'Modo praia'}
+        aria-label={themeMode === 'daylight' ? 'Ativar modo padrão' : 'Ativar modo praia'}
+      >
+        <span className="material-icons-round text-[20px]">
+          {themeMode === 'daylight' ? 'dark_mode' : 'light_mode'}
+        </span>
+      </button>
       {renderPage()}
       {currentPage !== 'lock' && (
         <HomeIndicatorBar />
