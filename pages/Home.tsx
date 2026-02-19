@@ -136,6 +136,14 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, mont
           <div className="relative">
             <div className="flex items-center gap-2">
               <button
+                onClick={() => setShowComandaPicker(true)}
+                className="w-12 h-12 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary"
+                title="Comandas"
+                aria-label="Abrir comandas"
+              >
+                <span className="material-icons-round text-xl">receipt_long</span>
+              </button>
+              <button
                 onClick={() => setTopMenuOpen(prev => !prev)}
                 className="w-12 h-12 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary"
                 title="Mais ações"

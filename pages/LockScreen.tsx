@@ -1,7 +1,7 @@
 
 import React, { useRef, useState } from 'react';
 import { User } from '../types';
-import { login, formatCPF, normalizeCPF } from '../services/auth';
+import { login, formatCPF, isApiAuthMode, normalizeCPF } from '../services/auth';
 import { FormButton, FormInput, FormLabel } from '../components/form';
 
 interface LockScreenProps {
@@ -16,6 +16,7 @@ const LockScreen: React.FC<LockScreenProps> = ({ onAuthSuccess }) => {
   const [error, setError] = useState<string | null>(null);
   const cpfInputRef = useRef<HTMLInputElement>(null);
   const passwordInputRef = useRef<HTMLInputElement>(null);
+  const apiMode = isApiAuthMode();
 
   const handleSubmit = async () => {
     if (loading) return;
@@ -25,8 +26,9 @@ const LockScreen: React.FC<LockScreenProps> = ({ onAuthSuccess }) => {
     setCpf(cpfRaw);
     setPassword(passwordRaw);
 
-    if (normalizeCPF(cpfRaw).length !== 11 || passwordRaw.trim().length < 4) {
-      setError('Informe CPF válido e senha.');
+    const loginIdValid = apiMode ? cpfRaw.trim().length >= 3 : normalizeCPF(cpfRaw).length === 11;
+    if (!loginIdValid || passwordRaw.trim().length < 4) {
+      setError(apiMode ? 'Informe ID do estabelecimento e senha.' : 'Informe CPF válido e senha.');
       return;
     }
     setLoading(true);
@@ -63,15 +65,15 @@ const LockScreen: React.FC<LockScreenProps> = ({ onAuthSuccess }) => {
         <div className="bg-white/5 backdrop-blur-3xl w-full rounded-2xl p-8 border border-white/10 shadow-2xl">
           <div className="space-y-4 mb-6">
             <div>
-              <FormLabel>CPF</FormLabel>
+              <FormLabel>{apiMode ? 'ID do estabelecimento' : 'CPF'}</FormLabel>
               <FormInput
                 ref={cpfInputRef}
                 type="text"
                 name="username"
                 autoComplete="username"
-                value={formatCPF(cpf)}
+                value={apiMode ? cpf : formatCPF(cpf)}
                 onChange={(e) => setCpf(e.target.value)}
-                placeholder="000.000.000-00"
+                placeholder={apiMode ? 'Digite o ID do estabelecimento' : '000.000.000-00'}
                 className="mt-2"
               />
             </div>

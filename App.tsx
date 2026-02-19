@@ -15,11 +15,10 @@ import MonthlyAccounts from './pages/MonthlyAccounts';
 import MonthlyDetail from './pages/MonthlyDetail';
 import Users from './pages/Users';
 import HomeIndicatorBar from './components/HomeIndicatorBar';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { matchPath, useLocation, useNavigate } from 'react-router-dom';
 import { getMonthlyBalance, getMonthlyAvailableLimit, isMonthlyBlocked } from './utils/monthly';
 import { db, DEFAULT_TENANT_ID, forceSyncSeedData, loadAll, seedIfEmpty } from './services/db';
 import { clearAuthSession, ensureDefaultAdmin, logout, restoreAuthUser, upsertSessionUser } from './services/auth';
-import { applyThemeMode, getStoredThemeMode, ThemeMode } from './services/theme';
 
 const PAGE_TO_PATH: Record<AppState, string> = {
   lock: '/lock',
@@ -28,35 +27,41 @@ const PAGE_TO_PATH: Record<AppState, string> = {
   inventory: '/inventory',
   reports: '/reports',
   sale: '/sale',
-  customer_detail: '/customers/detail',
+  customer_detail: '/customers/:customerId',
   customers: '/customers',
   customer_create: '/customers/new',
   monthly_accounts: '/monthly',
-  monthly_detail: '/monthly/detail',
+  monthly_detail: '/monthly/:customerId',
   users: '/users'
 };
 
-const PATH_TO_PAGE: Record<string, AppState> = {
-  '/lock': 'lock',
-  '/': 'home',
-  '/sales': 'sales',
-  '/inventory': 'inventory',
-  '/reports': 'reports',
-  '/sale': 'sale',
-  '/customers/detail': 'customer_detail',
-  '/customers': 'customers',
-  '/customers/new': 'customer_create',
-  '/monthly': 'monthly_accounts',
-  '/monthly/detail': 'monthly_detail',
-  '/users': 'users'
-};
+const ROUTE_PATTERNS: Array<{ path: string; page: AppState }> = [
+  { path: '/lock', page: 'lock' },
+  { path: '/', page: 'home' },
+  { path: '/sales', page: 'sales' },
+  { path: '/inventory', page: 'inventory' },
+  { path: '/reports', page: 'reports' },
+  { path: '/sale', page: 'sale' },
+  { path: '/customers/new', page: 'customer_create' },
+  { path: '/customers/:customerId', page: 'customer_detail' },
+  { path: '/customers', page: 'customers' },
+  { path: '/monthly/:customerId', page: 'monthly_detail' },
+  { path: '/monthly', page: 'monthly_accounts' },
+  { path: '/users', page: 'users' },
+  // legacy compat
+  { path: '/customers/detail', page: 'customer_detail' },
+  { path: '/monthly/detail', page: 'monthly_detail' }
+];
 
 const App: React.FC = () => {
   const routerNavigate = useNavigate();
   const location = useLocation();
-  const currentPage = PATH_TO_PAGE[location.pathname] || 'home';
+  const matchedRoute = ROUTE_PATTERNS.find(route => matchPath({ path: route.path, end: true }, location.pathname));
+  const currentPage = matchedRoute?.page || 'home';
+  const matchedParams = (matchedRoute
+    ? matchPath({ path: matchedRoute.path, end: true }, location.pathname)?.params
+    : undefined) as { customerId?: string } | undefined;
   const [privacyMode, setPrivacyMode] = useState(true);
-  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [products, setProducts] = useState<Product[]>(MOCK_PRODUCTS);
@@ -67,16 +72,11 @@ const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [currentTenantId, setCurrentTenantId] = useState<string | null>(null);
   const [dbReady, setDbReady] = useState(false);
-  const [themeMode, setThemeMode] = useState<ThemeMode>('default');
   const prevCustomersRef = useRef<Customer[]>([]);
   const prevProductsRef = useRef<Product[]>([]);
   const prevOrdersRef = useRef<Order[]>([]);
   const prevMonthlyRef = useRef<MonthlyAccount[]>([]);
   const prevUsersRef = useRef<User[]>([]);
-
-  useEffect(() => {
-    setThemeMode(getStoredThemeMode());
-  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -229,12 +229,14 @@ const App: React.FC = () => {
   }, [users, dbReady, currentTenantId]);
 
   const navigate = (page: AppState, customerId: string | null = null) => {
-    const path = PAGE_TO_PATH[page] || PAGE_TO_PATH.home;
-    const params = new URLSearchParams();
     const resolvedCustomerId = customerId || null;
-    if (resolvedCustomerId) {
-      setSelectedCustomerId(resolvedCustomerId);
-      params.set('customerId', resolvedCustomerId);
+    let path = PAGE_TO_PATH[page] || PAGE_TO_PATH.home;
+    if ((page === 'customer_detail' || page === 'monthly_detail') && !resolvedCustomerId) return;
+    if (page === 'customer_detail' && resolvedCustomerId) {
+      path = `/customers/${resolvedCustomerId}`;
+    }
+    if (page === 'monthly_detail' && resolvedCustomerId) {
+      path = `/monthly/${resolvedCustomerId}`;
     }
     if (page === 'lock') {
       void logout();
@@ -247,7 +249,7 @@ const App: React.FC = () => {
     if (page === 'reports' && currentUser?.role !== 'admin') {
       return;
     }
-    routerNavigate(`${path}${params.toString() ? `?${params.toString()}` : ''}`);
+    routerNavigate(path);
   };
 
   const handleAuthSuccess = (user: User) => {
@@ -272,8 +274,8 @@ const App: React.FC = () => {
     }
   }, [currentUser, currentPage, dbReady, routerNavigate]);
 
-  const routeCustomerId = new URLSearchParams(location.search).get('customerId');
-  const effectiveCustomerId = routeCustomerId || selectedCustomerId;
+  const routeCustomerId = matchedParams?.customerId || new URLSearchParams(location.search).get('customerId');
+  const effectiveCustomerId = routeCustomerId || null;
 
   const renderPage = () => {
     if (!dbReady) {
@@ -599,21 +601,6 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background-dark text-white font-sans overflow-x-hidden selection:bg-primary/30">
-      <button
-        type="button"
-        onClick={() => {
-          const nextMode: ThemeMode = themeMode === 'daylight' ? 'default' : 'daylight';
-          applyThemeMode(nextMode);
-          setThemeMode(nextMode);
-        }}
-        className="fixed top-5 right-20 sm:right-5 z-[300] w-11 h-11 rounded-full bg-primary/10 border border-primary/30 text-primary flex items-center justify-center backdrop-blur-xl"
-        title={themeMode === 'daylight' ? 'Modo padrão' : 'Modo praia'}
-        aria-label={themeMode === 'daylight' ? 'Ativar modo padrão' : 'Ativar modo praia'}
-      >
-        <span className="material-icons-round text-[20px]">
-          {themeMode === 'daylight' ? 'dark_mode' : 'light_mode'}
-        </span>
-      </button>
       {renderPage()}
       {currentPage !== 'lock' && (
         <HomeIndicatorBar />

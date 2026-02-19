@@ -1,9 +1,9 @@
 import { db, DEFAULT_TENANT_ID } from './db';
 import { User, UserRole } from '../types';
+import { loginWithEstablishment, logoutAuthSession } from './authApi';
 
 const encoder = new TextEncoder();
 const AUTH_MODE = (import.meta.env.VITE_AUTH_MODE || 'local').toLowerCase();
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/+$/, '');
 const AUTH_SESSION_KEY = 'auth_session_v1';
 
 interface AuthSession {
@@ -94,27 +94,14 @@ async function loginLocal(cpf: string, password: string) {
 }
 
 async function loginViaApi(cpf: string, password: string) {
-  if (!API_BASE_URL) {
-    return { user: null, error: 'API de autenticação não configurada.' };
-  }
   try {
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        cpf: normalizeCPF(cpf),
-        password
-      })
+    const payload = await loginWithEstablishment({
+      establishmentId: cpf.trim(),
+      password
     });
-    const payload = await response.json().catch(() => null);
-    if (!response.ok) {
-      const message = payload?.message || payload?.error || 'Falha na autenticação.';
-      return { user: null, error: String(message) };
-    }
-
-    const userData = payload?.user || payload?.data?.user || payload;
-    const tokenData = payload?.tokens || payload?.data?.tokens || payload;
-    const tenantId = userData?.tenantId || payload?.tenantId || DEFAULT_TENANT_ID;
+    const userData = payload.user;
+    const tokenData = payload.tokens;
+    const tenantId = userData?.tenantId || DEFAULT_TENANT_ID;
     const now = Date.now();
     const user: User = {
       id: userData?.id || `u_${now}`,
@@ -136,8 +123,9 @@ async function loginViaApi(cpf: string, password: string) {
       user
     });
     return { user, error: null };
-  } catch {
-    return { user: null, error: 'Não foi possível conectar ao servidor.' };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Não foi possível conectar ao servidor.';
+    return { user: null, error: message };
   }
 }
 
@@ -233,6 +221,28 @@ export function upsertSessionUser(user: User) {
 export function clearAuthSession() {
   localStorage.removeItem(AUTH_SESSION_KEY);
   localStorage.removeItem('auth_user_id');
+}
+
+function readStoredSession() {
+  const raw = localStorage.getItem(AUTH_SESSION_KEY);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as AuthSession;
+  } catch {
+    return null;
+  }
+}
+
+export async function logout() {
+  const session = readStoredSession();
+  if (AUTH_MODE === 'api' && session?.refreshToken) {
+    try {
+      await logoutAuthSession(session.refreshToken);
+    } catch {
+      // Non-blocking logout call.
+    }
+  }
+  clearAuthSession();
 }
 
 export async function restoreAuthUser(allUsers: User[]) {

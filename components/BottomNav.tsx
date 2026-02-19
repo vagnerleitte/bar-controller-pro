@@ -20,13 +20,17 @@ const BottomNav: React.FC<BottomNavProps> = ({ activePage, navigate, currentUser
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-background-dark/80 backdrop-blur-2xl border-t border-primary/10 z-50">
+    <nav className="bottom-nav fixed bottom-0 left-0 right-0 bg-background-dark/80 backdrop-blur-2xl border-t border-primary/10 z-50">
       <div className="flex items-center justify-around px-2 pt-3 pb-8">
         {tabs.map(tab => (
           <button 
             key={tab.id}
             onClick={() => navigate(tab.id)}
-            className={`flex flex-col items-center gap-1 transition-all ${activePage === tab.id ? 'text-primary' : 'text-white/40 hover:text-white/60'}`}
+            className={`bottom-nav-item flex flex-col items-center gap-1 transition-all ${
+              activePage === tab.id
+                ? 'bottom-nav-item-active text-primary'
+                : 'bottom-nav-item-inactive text-white/40 hover:text-white/60'
+            }`}
           >
             <span className="material-icons-round">{tab.icon}</span>
             <span className="text-[10px] font-bold uppercase tracking-tighter">{tab.label}</span>

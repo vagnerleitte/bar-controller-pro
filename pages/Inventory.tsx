@@ -4,6 +4,7 @@ import { AppState, Product, UserRole } from '../types';
 import BottomNav from '../components/BottomNav';
 import AppTopBar from '../components/AppTopBar';
 import { FormInput, FormLabel, FormSelect } from '../components/form';
+import { applyThemeMode, getStoredThemeMode, ThemeMode } from '../services/theme';
 
 interface InventoryProps {
   // Fix: navigate function signature should accept optional customerId for consistency
@@ -26,6 +27,8 @@ const Inventory: React.FC<InventoryProps> = ({ navigate, products, setProducts, 
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [showAdjustModal, setShowAdjustModal] = useState(false);
+  const [topMenuOpen, setTopMenuOpen] = useState(false);
+  const [themeMode, setThemeMode] = useState<ThemeMode>(getStoredThemeMode());
   const [adjustReason, setAdjustReason] = useState<'IN' | 'LOSS'>('IN');
   const [adjustProductId, setAdjustProductId] = useState('');
   const [adjustQty, setAdjustQty] = useState('1');
@@ -310,51 +313,104 @@ const Inventory: React.FC<InventoryProps> = ({ navigate, products, setProducts, 
 
   return (
     <div className="pb-32">
-      <AppTopBar title="Estoque">
+      <AppTopBar
+        title="Estoque"
+        rightSlot={(
+          <>
+            <button
+              onClick={() => {
+                const nextMode: ThemeMode = themeMode === 'daylight' ? 'default' : 'daylight';
+                applyThemeMode(nextMode);
+                setThemeMode(nextMode);
+              }}
+              className="w-10 h-10 flex items-center justify-center rounded-full bg-primary/10 text-primary border border-primary/20"
+              title={themeMode === 'daylight' ? 'Modo padrão' : 'Modo praia'}
+            >
+              <span className="material-icons-round">{themeMode === 'daylight' ? 'dark_mode' : 'light_mode'}</span>
+            </button>
+            <div className="relative">
+              <button
+                onClick={() => setTopMenuOpen(previous => !previous)}
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-primary/10 text-primary border border-primary/20"
+                title="Mais ações"
+              >
+                <span className="material-icons-round">more_vert</span>
+              </button>
+              {topMenuOpen && (
+                <div className="absolute right-0 mt-2 w-52 border border-primary/25 rounded-2xl shadow-2xl z-50 overflow-hidden bg-[#083626]">
+                  <button
+                    onClick={() => {
+                      setPrivacyMode(!privacyMode);
+                      setTopMenuOpen(false);
+                    }}
+                    className="w-full px-4 py-3 text-left text-sm font-bold hover:bg-primary/10 flex items-center gap-2 text-white"
+                  >
+                    <span className="material-icons-round text-base text-primary">{privacyMode ? 'visibility' : 'visibility_off'}</span>
+                    {privacyMode ? 'Mostrar valores' : 'Ocultar valores'}
+                  </button>
+                </div>
+              )}
+            </div>
+          </>
+        )}
+      >
         <div className="px-5 pb-4 flex flex-col gap-4">
-          <div className="flex items-start justify-between gap-2">
+          <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
               <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-primary/80">Local Storage Active</span>
             </div>
-            <div className="flex flex-wrap justify-end gap-2 max-w-[70%]">
-              <button 
-                onClick={() => setPrivacyMode(!privacyMode)}
-                className="w-10 h-10 flex items-center justify-center rounded-full bg-primary/10 text-primary border border-primary/20"
-              >
-                <span className="material-icons-round">{privacyMode ? 'visibility' : 'visibility_off'}</span>
-              </button>
-              <button
-                onClick={() => setShowCategoryModal(true)}
-                className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-white border border-white/10"
-              >
-                <span className="material-icons-round">category</span>
-              </button>
-              <button
-                onClick={() => openAdjustment('IN')}
-                className="h-10 px-2.5 flex items-center justify-center rounded-full bg-white/5 text-white border border-white/10 text-[9px] font-bold uppercase tracking-wide"
-              >
-                Entrada
-              </button>
-              <button
-                onClick={() => openAdjustment('LOSS')}
-                className="h-10 px-2.5 flex items-center justify-center rounded-full bg-white/5 text-red-300 border border-white/10 text-[9px] font-bold uppercase tracking-wide"
-              >
-                Perda
-              </button>
-              <button
-                onClick={openCreateProduct}
-                className="w-10 h-10 flex items-center justify-center rounded-full bg-primary text-background-dark shadow-lg shadow-primary/20"
-              >
-                <span className="material-icons-round">add</span>
-              </button>
-              <button
-                onClick={() => setViewMode(previous => previous === 'cards' ? 'list' : 'cards')}
-                className="h-10 px-3 flex items-center justify-center rounded-full bg-white/5 text-white border border-white/10 text-[10px] font-bold uppercase tracking-widest"
-              >
-                {viewMode === 'cards' ? 'Lista' : 'Cards'}
-              </button>
+            <div className="flex items-center justify-end gap-2">
             </div>
+          </div>
+
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+            <button
+              onClick={openCreateProduct}
+              className="h-10 px-4 shrink-0 flex items-center justify-center rounded-full bg-primary text-background-dark text-[10px] font-black uppercase tracking-widest gap-1 shadow-lg shadow-primary/20"
+            >
+              <span className="material-icons-round text-[16px]">add</span>
+              Novo produto
+            </button>
+            <button
+              onClick={() => openAdjustment('IN')}
+              className="h-10 px-4 shrink-0 flex items-center justify-center rounded-full bg-white/5 text-white border border-white/10 text-[10px] font-bold uppercase tracking-wide"
+            >
+              Entrada
+            </button>
+            <button
+              onClick={() => openAdjustment('LOSS')}
+              className="h-10 px-4 shrink-0 flex items-center justify-center rounded-full bg-white/5 text-red-300 border border-white/10 text-[10px] font-bold uppercase tracking-wide"
+            >
+              Perda
+            </button>
+            <button
+              onClick={() => setViewMode('cards')}
+              className={`h-10 px-4 shrink-0 flex items-center justify-center rounded-full border text-[10px] font-bold uppercase tracking-widest ${
+                viewMode === 'cards'
+                  ? 'bg-primary text-background-dark border-primary'
+                  : 'bg-white/5 text-white border-white/10'
+              }`}
+            >
+              Cards
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`h-10 px-4 shrink-0 flex items-center justify-center rounded-full border text-[10px] font-bold uppercase tracking-widest ${
+                viewMode === 'list'
+                  ? 'bg-primary text-background-dark border-primary'
+                  : 'bg-white/5 text-white border-white/10'
+              }`}
+            >
+              Lista corrida
+            </button>
+            <button
+              onClick={() => setShowCategoryModal(true)}
+              className="h-10 px-4 shrink-0 flex items-center justify-center rounded-full bg-primary/10 text-primary border border-primary/25 text-[10px] font-bold uppercase tracking-widest gap-1"
+            >
+              <span className="material-icons-round text-[16px]">category</span>
+              Categorias
+            </button>
           </div>
           <div className="grid grid-cols-2 gap-2">
             <button

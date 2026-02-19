@@ -5,6 +5,7 @@ import { getMonthlyBalance } from '../utils/monthly';
 import BottomNav from '../components/BottomNav';
 import { getBarInsights } from '../services/geminiService';
 import AppLogo from '../components/AppLogo';
+import { applyThemeMode, getStoredThemeMode, ThemeMode } from '../services/theme';
 
 interface ReportsProps {
   // Fix: navigate function signature should accept optional customerId for consistency
@@ -18,6 +19,7 @@ interface ReportsProps {
 
 const Reports: React.FC<ReportsProps> = ({ navigate, orders, monthlyAccounts, privacyMode, setPrivacyMode, currentUserRole }) => {
   const [insight, setInsight] = useState('Carregando insight gerencial...');
+  const [themeMode, setThemeMode] = useState<ThemeMode>(getStoredThemeMode());
 
   const metrics = useMemo(() => {
     const closedOrders = orders.filter(o => o.status === 'closed');
@@ -64,12 +66,25 @@ const Reports: React.FC<ReportsProps> = ({ navigate, orders, monthlyAccounts, pr
               <span className="material-icons-round text-primary text-sm">cloud_done</span>
               <span className="text-[10px] font-bold uppercase tracking-widest text-primary/60">Sincronizado</span>
             </div>
-            <button 
-              onClick={() => setPrivacyMode(!privacyMode)}
-              className="w-10 h-10 flex items-center justify-center rounded-full bg-primary/20 text-primary border border-primary/10"
-            >
-              <span className="material-icons-round">{privacyMode ? 'visibility' : 'visibility_off'}</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  const nextMode: ThemeMode = themeMode === 'daylight' ? 'default' : 'daylight';
+                  applyThemeMode(nextMode);
+                  setThemeMode(nextMode);
+                }}
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-primary/20 text-primary border border-primary/10"
+                title={themeMode === 'daylight' ? 'Modo padrão' : 'Modo praia'}
+              >
+                <span className="material-icons-round">{themeMode === 'daylight' ? 'dark_mode' : 'light_mode'}</span>
+              </button>
+              <button 
+                onClick={() => setPrivacyMode(!privacyMode)}
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-primary/20 text-primary border border-primary/10"
+              >
+                <span className="material-icons-round">{privacyMode ? 'visibility' : 'visibility_off'}</span>
+              </button>
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <AppLogo className="w-10 h-10" />
