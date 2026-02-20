@@ -1,11 +1,10 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { AppState, MonthlyAccount, Order, UserRole } from '../types';
+import { AppState, MonthlyAccount, Order, User, UserRole } from '../types';
 import { getMonthlyBalance } from '../utils/monthly';
 import BottomNav from '../components/BottomNav';
 import { getBarInsights } from '../services/geminiService';
-import AppLogo from '../components/AppLogo';
-import { applyThemeMode, getStoredThemeMode, ThemeMode } from '../services/theme';
+import MainTopBar from '../components/MainTopBar';
 
 interface ReportsProps {
   // Fix: navigate function signature should accept optional customerId for consistency
@@ -15,11 +14,12 @@ interface ReportsProps {
   privacyMode: boolean;
   setPrivacyMode: (v: boolean) => void;
   currentUserRole?: UserRole | null;
+  currentUser: User | null;
+  onForceSeedSync: () => Promise<void>;
 }
 
-const Reports: React.FC<ReportsProps> = ({ navigate, orders, monthlyAccounts, privacyMode, setPrivacyMode, currentUserRole }) => {
+const Reports: React.FC<ReportsProps> = ({ navigate, orders, monthlyAccounts, privacyMode, setPrivacyMode, currentUserRole, currentUser, onForceSeedSync }) => {
   const [insight, setInsight] = useState('Carregando insight gerencial...');
-  const [themeMode, setThemeMode] = useState<ThemeMode>(getStoredThemeMode());
 
   const metrics = useMemo(() => {
     const closedOrders = orders.filter(o => o.status === 'closed');
@@ -59,39 +59,13 @@ const Reports: React.FC<ReportsProps> = ({ navigate, orders, monthlyAccounts, pr
 
   return (
     <div className="pb-32">
-      <header className="sticky top-0 z-50 bg-background-dark/80 backdrop-blur-xl safe-area-top">
-        <div className="px-6 py-4 flex flex-col gap-2">
-          <div className="flex justify-between items-center mb-2">
-            <div className="flex items-center gap-2">
-              <span className="material-icons-round text-primary text-sm">cloud_done</span>
-              <span className="text-[10px] font-bold uppercase tracking-widest text-primary/60">Sincronizado</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => {
-                  const nextMode: ThemeMode = themeMode === 'daylight' ? 'default' : 'daylight';
-                  applyThemeMode(nextMode);
-                  setThemeMode(nextMode);
-                }}
-                className="w-10 h-10 flex items-center justify-center rounded-full bg-primary/20 text-primary border border-primary/10"
-                title={themeMode === 'daylight' ? 'Modo padrão' : 'Modo praia'}
-              >
-                <span className="material-icons-round">{themeMode === 'daylight' ? 'dark_mode' : 'light_mode'}</span>
-              </button>
-              <button 
-                onClick={() => setPrivacyMode(!privacyMode)}
-                className="w-10 h-10 flex items-center justify-center rounded-full bg-primary/20 text-primary border border-primary/10"
-              >
-                <span className="material-icons-round">{privacyMode ? 'visibility' : 'visibility_off'}</span>
-              </button>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <AppLogo className="w-10 h-10" />
-            <h1 className="text-[18px] font-extrabold tracking-tight">Relatórios</h1>
-          </div>
-        </div>
-      </header>
+      <MainTopBar
+        navigate={navigate}
+        privacyMode={privacyMode}
+        setPrivacyMode={setPrivacyMode}
+        currentUser={currentUser}
+        onForceSeedSync={onForceSeedSync}
+      />
 
       <main className="px-6 py-6 space-y-8">
         <section className="flex overflow-x-auto gap-2 no-scrollbar pb-2 -mx-6 px-6">

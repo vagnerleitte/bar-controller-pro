@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
-import { AppState, Customer, Order, UserRole } from '../types';
+import { AppState, Customer, Order, User, UserRole } from '../types';
 import BottomNav from '../components/BottomNav';
-import AppLogo from '../components/AppLogo';
+import MainTopBar from '../components/MainTopBar';
 
 interface SalesProps {
   navigate: (page: AppState, customerId?: string | null) => void;
@@ -10,11 +10,13 @@ interface SalesProps {
   privacyMode: boolean;
   setPrivacyMode: (value: boolean) => void;
   currentUserRole?: UserRole | null;
+  currentUser: User | null;
+  onForceSeedSync: () => Promise<void>;
 }
 
 type Period = 'today' | '7d' | '30d' | 'month';
 
-const Sales: React.FC<SalesProps> = ({ navigate, orders, customers, privacyMode, setPrivacyMode, currentUserRole }) => {
+const Sales: React.FC<SalesProps> = ({ navigate, orders, customers, privacyMode, setPrivacyMode, currentUserRole, currentUser, onForceSeedSync }) => {
   const [period, setPeriod] = useState<Period>('today');
 
   const { list, totalValue, totalPaid } = useMemo(() => {
@@ -62,22 +64,14 @@ const Sales: React.FC<SalesProps> = ({ navigate, orders, customers, privacyMode,
 
   return (
     <div className="pb-32">
-      <header className="sticky top-0 z-50 bg-background-dark/80 backdrop-blur-xl safe-area-top">
-        <div className="px-5 py-4 flex items-center justify-between">
-          <div>
-            <div className="flex items-center gap-3">
-              <AppLogo className="w-9 h-9" />
-              <h1 className="text-[12px] font-extrabold tracking-tight">Vendas</h1>
-            </div>
-            <p className="text-xs text-primary/60 font-medium uppercase tracking-widest mt-0.5">Visão diária por padrão</p>
-          </div>
-          <button
-            onClick={() => setPrivacyMode(!privacyMode)}
-            className="w-10 h-10 flex items-center justify-center rounded-full bg-primary text-background-dark shadow-lg shadow-primary/20"
-          >
-            <span className="material-icons-round text-xl">{privacyMode ? 'visibility' : 'visibility_off'}</span>
-          </button>
-        </div>
+      <MainTopBar
+        navigate={navigate}
+        privacyMode={privacyMode}
+        setPrivacyMode={setPrivacyMode}
+        currentUser={currentUser}
+        onForceSeedSync={onForceSeedSync}
+      />
+      <header>
         <div className="px-5 pb-4 flex gap-2 overflow-x-auto no-scrollbar">
           <button onClick={() => setPeriod('today')} className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest ${period === 'today' ? 'bg-primary text-background-dark' : 'bg-white/5 border border-white/10 text-white/70'}`}>Hoje</button>
           <button onClick={() => setPeriod('7d')} className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest ${period === '7d' ? 'bg-primary text-background-dark' : 'bg-white/5 border border-white/10 text-white/70'}`}>7 dias</button>

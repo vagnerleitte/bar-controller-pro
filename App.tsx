@@ -14,6 +14,7 @@ import CustomerCreate from './pages/CustomerCreate';
 import MonthlyAccounts from './pages/MonthlyAccounts';
 import MonthlyDetail from './pages/MonthlyDetail';
 import Users from './pages/Users';
+import Profile from './pages/Profile';
 import HomeIndicatorBar from './components/HomeIndicatorBar';
 import { matchPath, useLocation, useNavigate } from 'react-router-dom';
 import { getMonthlyBalance, getMonthlyAvailableLimit, isMonthlyBlocked } from './utils/monthly';
@@ -23,6 +24,7 @@ import { clearAuthSession, ensureDefaultAdmin, logout, restoreAuthUser, upsertSe
 const PAGE_TO_PATH: Record<AppState, string> = {
   lock: '/lock',
   home: '/',
+  profile: '/profile',
   sales: '/sales',
   inventory: '/inventory',
   reports: '/reports',
@@ -38,6 +40,7 @@ const PAGE_TO_PATH: Record<AppState, string> = {
 const ROUTE_PATTERNS: Array<{ path: string; page: AppState }> = [
   { path: '/lock', page: 'lock' },
   { path: '/', page: 'home' },
+  { path: '/profile', page: 'profile' },
   { path: '/sales', page: 'sales' },
   { path: '/inventory', page: 'inventory' },
   { path: '/reports', page: 'reports' },
@@ -306,6 +309,15 @@ const App: React.FC = () => {
             currentUser={currentUser}
           />
         );
+      case 'profile':
+        return (
+          <Profile
+            navigate={navigate}
+            currentUser={currentUser}
+            privacyMode={privacyMode}
+            setPrivacyMode={setPrivacyMode}
+          />
+        );
       case 'sales':
         return (
           <Sales
@@ -315,6 +327,8 @@ const App: React.FC = () => {
             privacyMode={privacyMode}
             setPrivacyMode={setPrivacyMode}
             currentUserRole={currentUser?.role}
+            currentUser={currentUser}
+            onForceSeedSync={handleForceSeedSync}
           />
         );
       case 'monthly_accounts':
@@ -324,6 +338,10 @@ const App: React.FC = () => {
             customers={customers}
             accounts={monthlyAccounts}
             currentUserRole={currentUser?.role}
+            currentUser={currentUser}
+            privacyMode={privacyMode}
+            setPrivacyMode={setPrivacyMode}
+            onForceSeedSync={handleForceSeedSync}
           />
         );
       case 'monthly_detail': {
@@ -433,6 +451,8 @@ const App: React.FC = () => {
             privacyMode={privacyMode} 
             setPrivacyMode={setPrivacyMode} 
             currentUserRole={currentUser?.role}
+            currentUser={currentUser}
+            onForceSeedSync={handleForceSeedSync}
           />
         );
       case 'reports':
@@ -444,6 +464,8 @@ const App: React.FC = () => {
             privacyMode={privacyMode} 
             setPrivacyMode={setPrivacyMode} 
             currentUserRole={currentUser?.role}
+            currentUser={currentUser}
+            onForceSeedSync={handleForceSeedSync}
           />
         );
       case 'sale':

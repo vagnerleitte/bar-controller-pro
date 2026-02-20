@@ -136,6 +136,14 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, mont
           <div className="relative">
             <div className="flex items-center gap-2">
               <button
+                onClick={() => setPrivacyMode(!privacyMode)}
+                className="w-12 h-12 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary"
+                title={privacyMode ? 'Mostrar valores' : 'Ocultar valores'}
+                aria-label={privacyMode ? 'Mostrar valores' : 'Ocultar valores'}
+              >
+                <span className="material-icons-round text-xl">{privacyMode ? 'visibility' : 'visibility_off'}</span>
+              </button>
+              <button
                 onClick={() => setShowComandaPicker(true)}
                 className="w-12 h-12 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary"
                 title="Comandas"
@@ -153,6 +161,16 @@ const Home: React.FC<HomeProps> = ({ navigate, orders, customers, products, mont
             </div>
             {topMenuOpen && (
               <div className={`absolute right-0 mt-2 w-56 border border-primary/25 rounded-2xl shadow-2xl z-50 overflow-hidden ${isDaylight ? 'bg-[#f5fff9]' : 'bg-[#083626]'}`}>
+                <button
+                  onClick={() => {
+                    navigate('profile');
+                    setTopMenuOpen(false);
+                  }}
+                  className={`w-full px-4 py-3 text-left text-sm font-bold hover:bg-primary/10 flex items-center gap-2 ${isDaylight ? 'text-[#062b17]' : 'text-white'}`}
+                >
+                  <span className="material-icons-round text-base text-primary">person</span>
+                  Perfil
+                </button>
                 <button
                   onClick={() => {
                     setPrivacyMode(!privacyMode);

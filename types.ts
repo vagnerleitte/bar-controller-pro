@@ -132,6 +132,7 @@ export interface User {
 export type AppState =
   | 'lock'
   | 'home'
+  | 'profile'
   | 'sales'
   | 'inventory'
   | 'reports'

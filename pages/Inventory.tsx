@@ -1,10 +1,9 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { AppState, Product, UserRole } from '../types';
+import { AppState, Product, User, UserRole } from '../types';
 import BottomNav from '../components/BottomNav';
-import AppTopBar from '../components/AppTopBar';
+import MainTopBar from '../components/MainTopBar';
 import { FormInput, FormLabel, FormSelect } from '../components/form';
-import { applyThemeMode, getStoredThemeMode, ThemeMode } from '../services/theme';
 
 interface InventoryProps {
   // Fix: navigate function signature should accept optional customerId for consistency
@@ -15,9 +14,12 @@ interface InventoryProps {
   privacyMode: boolean;
   setPrivacyMode: (v: boolean) => void;
   currentUserRole?: UserRole | null;
+  currentUser: User | null;
+  onForceSeedSync: () => Promise<void>;
 }
 
-const Inventory: React.FC<InventoryProps> = ({ navigate, products, setProducts, onRegisterAdjustment, privacyMode, setPrivacyMode, currentUserRole }) => {
+const Inventory: React.FC<InventoryProps> = ({ navigate, products, setProducts, onRegisterAdjustment, privacyMode, setPrivacyMode, currentUserRole, currentUser, onForceSeedSync }) => {
+  const PAGE_SIZE = 12;
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('Todos');
   const [stockFilter, setStockFilter] = useState<'all' | 'ok' | 'low' | 'zero'>('all');
@@ -27,8 +29,6 @@ const Inventory: React.FC<InventoryProps> = ({ navigate, products, setProducts, 
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [showAdjustModal, setShowAdjustModal] = useState(false);
-  const [topMenuOpen, setTopMenuOpen] = useState(false);
-  const [themeMode, setThemeMode] = useState<ThemeMode>(getStoredThemeMode());
   const [adjustReason, setAdjustReason] = useState<'IN' | 'LOSS'>('IN');
   const [adjustProductId, setAdjustProductId] = useState('');
   const [adjustQty, setAdjustQty] = useState('1');
@@ -39,6 +39,8 @@ const Inventory: React.FC<InventoryProps> = ({ navigate, products, setProducts, 
   const [categoryForSubcategory, setCategoryForSubcategory] = useState('');
   const [customCategories, setCustomCategories] = useState<string[]>([]);
   const [customSubcategories, setCustomSubcategories] = useState<Record<string, string[]>>({});
+  const [expandedProductIds, setExpandedProductIds] = useState<Record<string, boolean>>({});
+  const [currentPage, setCurrentPage] = useState(1);
   const [productForm, setProductForm] = useState({
     name: '',
     sku: '',
@@ -97,6 +99,12 @@ const Inventory: React.FC<InventoryProps> = ({ navigate, products, setProducts, 
       return matchSearch && matchCategory && matchStock && matchStatus;
     });
   }, [products, search, categoryFilter, stockFilter, statusFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / PAGE_SIZE));
+  const paginatedProducts = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return filteredProducts.slice(start, start + PAGE_SIZE);
+  }, [filteredProducts, currentPage]);
 
   const lowStockCount = useMemo(() => {
     return products.filter(product => {
@@ -311,49 +319,33 @@ const Inventory: React.FC<InventoryProps> = ({ navigate, products, setProducts, 
     setAdjustNote('');
   };
 
+  const toggleExpandedProduct = (productId: string) => {
+    setExpandedProductIds(previous => ({
+      ...previous,
+      [productId]: !previous[productId]
+    }));
+  };
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, categoryFilter, stockFilter, statusFilter, viewMode]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
   return (
     <div className="pb-32">
-      <AppTopBar
-        title="Estoque"
-        rightSlot={(
-          <>
-            <button
-              onClick={() => {
-                const nextMode: ThemeMode = themeMode === 'daylight' ? 'default' : 'daylight';
-                applyThemeMode(nextMode);
-                setThemeMode(nextMode);
-              }}
-              className="w-10 h-10 flex items-center justify-center rounded-full bg-primary/10 text-primary border border-primary/20"
-              title={themeMode === 'daylight' ? 'Modo padrão' : 'Modo praia'}
-            >
-              <span className="material-icons-round">{themeMode === 'daylight' ? 'dark_mode' : 'light_mode'}</span>
-            </button>
-            <div className="relative">
-              <button
-                onClick={() => setTopMenuOpen(previous => !previous)}
-                className="w-10 h-10 flex items-center justify-center rounded-full bg-primary/10 text-primary border border-primary/20"
-                title="Mais ações"
-              >
-                <span className="material-icons-round">more_vert</span>
-              </button>
-              {topMenuOpen && (
-                <div className="absolute right-0 mt-2 w-52 border border-primary/25 rounded-2xl shadow-2xl z-50 overflow-hidden bg-[#083626]">
-                  <button
-                    onClick={() => {
-                      setPrivacyMode(!privacyMode);
-                      setTopMenuOpen(false);
-                    }}
-                    className="w-full px-4 py-3 text-left text-sm font-bold hover:bg-primary/10 flex items-center gap-2 text-white"
-                  >
-                    <span className="material-icons-round text-base text-primary">{privacyMode ? 'visibility' : 'visibility_off'}</span>
-                    {privacyMode ? 'Mostrar valores' : 'Ocultar valores'}
-                  </button>
-                </div>
-              )}
-            </div>
-          </>
-        )}
-      >
+      <MainTopBar
+        navigate={navigate}
+        privacyMode={privacyMode}
+        setPrivacyMode={setPrivacyMode}
+        currentUser={currentUser}
+        onForceSeedSync={onForceSeedSync}
+      />
+      <div>
         <div className="px-5 pb-4 flex flex-col gap-4">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
@@ -479,87 +471,117 @@ const Inventory: React.FC<InventoryProps> = ({ navigate, products, setProducts, 
             </FormSelect>
           </div>
         </div>
-      </AppTopBar>
+      </div>
 
       <main className="p-4 space-y-4">
-        {viewMode === 'cards' ? filteredProducts.map(product => (
+        {viewMode === 'cards' ? paginatedProducts.map(product => (
           <div
             key={product.id}
             className={`bg-white/5 border border-white/10 rounded-2xl p-4 transition-all shadow-lg ${
               product.status === 'inactive' ? 'opacity-60' : ''
             }`}
           >
-            <div className="flex justify-between items-start gap-3">
-              <div className="flex items-center gap-4 min-w-0">
-                <div className="w-16 h-16 rounded-xl overflow-hidden bg-white/10 border border-white/10 shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="relative w-14 h-14 shrink-0 overflow-visible">
+                <div className="absolute -top-3 left-[20px] z-10">
+                  <span className="px-2 py-0.5 rounded-full bg-[#011b12] border border-primary text-[10px] font-black uppercase text-primary shadow-[0_6px_14px_rgba(1,27,18,0.65)]">
+                    {product.unit || 'un'}
+                  </span>
+                </div>
+                <div className="w-14 h-14 rounded-xl overflow-hidden bg-white/10 border border-white/10">
                   <img src={product.image} className="w-full h-full object-cover" alt={product.name} />
                 </div>
-                <div className="flex flex-col gap-1 min-w-0">
-                  <h3 className="font-bold text-base leading-tight truncate">{product.name}</h3>
-                  <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">SKU: {product.sku}</span>
-                  <div className="flex gap-1.5 mt-1 flex-wrap">
-                    <span className="px-2 py-0.5 rounded bg-white/10 text-[8px] font-bold text-white/60 uppercase">{product.category}</span>
-                    {(product.subcategory || product.subgroup) && (
-                      <span className="px-2 py-0.5 rounded bg-primary/10 text-[8px] font-bold text-primary uppercase">
-                        {product.subcategory || product.subgroup}
-                      </span>
-                    )}
-                    {product.location && (
-                      <span className="px-2 py-0.5 rounded bg-white/10 text-[8px] font-bold text-white/60 uppercase">{product.location}</span>
-                    )}
-                    {product.status === 'inactive' && (
-                      <span className="px-2 py-0.5 rounded bg-red-500/20 text-[8px] font-bold text-red-300 uppercase">Inativo</span>
-                    )}
-                  </div>
+              </div>
+              <div className="min-w-0 flex-1">
+                <h3 className="font-bold text-base leading-tight truncate">{product.name}</h3>
+                <div className="mt-1 flex items-center gap-2">
+                  <span className="text-[10px] text-white/40 uppercase tracking-widest font-bold">Qtd</span>
+                  <span className={`text-xl font-black leading-none ${
+                    getStock(product) <= 0
+                      ? 'text-red-400'
+                      : getStock(product) <= getMinStock(product)
+                        ? 'text-orange-400'
+                        : 'text-white'
+                  }`}>
+                    {getStock(product)}
+                  </span>
                 </div>
               </div>
               <div className="text-right shrink-0">
                 <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest mb-1">Preço</p>
-                <p className="text-lg font-extrabold text-primary">
+                <p className="text-base font-extrabold text-primary">
                   R$ {product.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </p>
               </div>
+              <button
+                onClick={() => toggleExpandedProduct(product.id)}
+                className="w-9 h-9 rounded-full bg-white/5 border border-white/10 text-white/70 flex items-center justify-center shrink-0"
+                title={expandedProductIds[product.id] ? 'Recolher' : 'Expandir'}
+              >
+                <span className="material-icons-round text-[18px]">
+                  {expandedProductIds[product.id] ? 'expand_less' : 'expand_more'}
+                </span>
+              </button>
             </div>
 
-            <div className="mt-4 flex items-center justify-between gap-3">
-              <div>
-                <p className="text-[10px] text-white/40 uppercase font-bold tracking-widest">Estoque atual</p>
-                <p className={`text-xl font-black ${
-                  getStock(product) <= 0
-                    ? 'text-red-400'
-                    : getStock(product) <= getMinStock(product)
-                      ? 'text-orange-400'
-                      : 'text-white'
-                }`}>
-                  {getStock(product)} {product.unit || 'un'}
-                </p>
-                <p className="text-[10px] text-white/40 uppercase">
-                  Min: {getMinStock(product)} {product.unit || 'un'}
-                </p>
+            {expandedProductIds[product.id] && (
+              <div className="mt-4 pt-4 border-t border-white/10">
+                <div className="flex gap-1.5 mb-3 flex-wrap">
+                  <span className="px-2 py-0.5 rounded bg-white/10 text-[8px] font-bold text-white/60 uppercase">SKU: {product.sku}</span>
+                  <span className="px-2 py-0.5 rounded bg-white/10 text-[8px] font-bold text-white/60 uppercase">{product.category}</span>
+                  {(product.subcategory || product.subgroup) && (
+                    <span className="px-2 py-0.5 rounded bg-primary/10 text-[8px] font-bold text-primary uppercase">
+                      {product.subcategory || product.subgroup}
+                    </span>
+                  )}
+                  {product.location && (
+                    <span className="px-2 py-0.5 rounded bg-white/10 text-[8px] font-bold text-white/60 uppercase">{product.location}</span>
+                  )}
+                  {product.status === 'inactive' && (
+                    <span className="px-2 py-0.5 rounded bg-red-500/20 text-[8px] font-bold text-red-300 uppercase">Inativo</span>
+                  )}
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-[10px] text-white/40 uppercase font-bold tracking-widest">Estoque atual</p>
+                    <p className={`text-xl font-black ${
+                      getStock(product) <= 0
+                        ? 'text-red-400'
+                        : getStock(product) <= getMinStock(product)
+                          ? 'text-orange-400'
+                          : 'text-white'
+                    }`}>
+                      {getStock(product)} {product.unit || 'un'}
+                    </p>
+                    <p className="text-[10px] text-white/40 uppercase">
+                      Min: {getMinStock(product)} {product.unit || 'un'}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => updateStock(product.id, -1)}
+                      className="w-10 h-10 rounded-full bg-white/5 border border-white/10 text-white"
+                      disabled={product.status === 'inactive'}
+                    >
+                      <span className="material-icons-round">remove</span>
+                    </button>
+                    <button
+                      onClick={() => updateStock(product.id, 1)}
+                      className="w-10 h-10 rounded-full bg-primary text-background-dark"
+                      disabled={product.status === 'inactive'}
+                    >
+                      <span className="material-icons-round">add</span>
+                    </button>
+                    <button
+                      onClick={() => openEditProduct(product)}
+                      className="h-10 px-3 rounded-full bg-white/5 border border-white/10 text-white text-[10px] font-bold uppercase tracking-widest"
+                    >
+                      Editar
+                    </button>
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => updateStock(product.id, -1)}
-                  className="w-10 h-10 rounded-full bg-white/5 border border-white/10 text-white"
-                  disabled={product.status === 'inactive'}
-                >
-                  <span className="material-icons-round">remove</span>
-                </button>
-                <button
-                  onClick={() => updateStock(product.id, 1)}
-                  className="w-10 h-10 rounded-full bg-primary text-background-dark"
-                  disabled={product.status === 'inactive'}
-                >
-                  <span className="material-icons-round">add</span>
-                </button>
-                <button
-                  onClick={() => openEditProduct(product)}
-                  className="h-10 px-3 rounded-full bg-white/5 border border-white/10 text-white text-[10px] font-bold uppercase tracking-widest"
-                >
-                  Editar
-                </button>
-              </div>
-            </div>
+            )}
           </div>
         )) : (
           <div className="inventory-list bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
@@ -571,7 +593,7 @@ const Inventory: React.FC<InventoryProps> = ({ navigate, products, setProducts, 
               <span>Categoria</span>
               <span>Ação</span>
             </div>
-            {filteredProducts.map(product => (
+            {paginatedProducts.map(product => (
               <div
                 key={product.id}
                 className={`inventory-list-row grid grid-cols-[1fr_2fr_1fr_1fr_1.4fr_auto] gap-2 px-3 py-2 border-b border-white/5 items-center text-xs ${
@@ -595,6 +617,27 @@ const Inventory: React.FC<InventoryProps> = ({ navigate, products, setProducts, 
         )}
         {filteredProducts.length === 0 && (
           <div className="text-center text-white/40 text-sm py-8">Nenhum item encontrado para esse filtro.</div>
+        )}
+        {filteredProducts.length > 0 && (
+          <div className="pt-2 flex items-center justify-between gap-3">
+            <button
+              onClick={() => setCurrentPage(previous => Math.max(1, previous - 1))}
+              disabled={currentPage === 1}
+              className="h-10 px-4 rounded-xl bg-white/5 border border-white/10 text-white text-xs font-bold uppercase tracking-widest disabled:opacity-40"
+            >
+              Anterior
+            </button>
+            <p className="text-xs font-bold uppercase tracking-widest text-white/60">
+              Página {currentPage} de {totalPages}
+            </p>
+            <button
+              onClick={() => setCurrentPage(previous => Math.min(totalPages, previous + 1))}
+              disabled={currentPage === totalPages}
+              className="h-10 px-4 rounded-xl bg-white/5 border border-white/10 text-white text-xs font-bold uppercase tracking-widest disabled:opacity-40"
+            >
+              Próxima
+            </button>
+          </div>
         )}
       </main>
 

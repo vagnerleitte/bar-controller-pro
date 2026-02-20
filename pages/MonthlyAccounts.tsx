@@ -1,30 +1,30 @@
 import React from 'react';
-import { AppState, Customer, MonthlyAccount, UserRole } from '../types';
+import { AppState, Customer, MonthlyAccount, User, UserRole } from '../types';
 import BottomNav from '../components/BottomNav';
 import { getDaysSinceCycleStart, getMonthlyAvailableLimit, getMonthlyBalance, isMonthlyBlocked, isMonthlyOverdue } from '../utils/monthly';
-import AppLogo from '../components/AppLogo';
+import MainTopBar from '../components/MainTopBar';
 
 interface MonthlyAccountsProps {
   navigate: (page: AppState, customerId?: string | null) => void;
   customers: Customer[];
   accounts: MonthlyAccount[];
   currentUserRole?: UserRole | null;
+  currentUser: User | null;
+  privacyMode: boolean;
+  setPrivacyMode: (value: boolean) => void;
+  onForceSeedSync: () => Promise<void>;
 }
 
-const MonthlyAccounts: React.FC<MonthlyAccountsProps> = ({ navigate, customers, accounts, currentUserRole }) => {
+const MonthlyAccounts: React.FC<MonthlyAccountsProps> = ({ navigate, customers, accounts, currentUserRole, currentUser, privacyMode, setPrivacyMode, onForceSeedSync }) => {
   return (
     <div className="pb-32">
-      <header className="sticky top-0 z-50 bg-background-dark/80 backdrop-blur-xl safe-area-top">
-        <div className="px-5 py-4 flex items-center justify-between">
-          <div>
-            <div className="flex items-center gap-3">
-              <AppLogo className="w-9 h-9" />
-              <h1 className="text-[12px] font-extrabold tracking-tight">Mensalistas</h1>
-            </div>
-            <p className="text-xs text-primary/60 font-medium uppercase tracking-widest mt-0.5">Contas mensais</p>
-          </div>
-        </div>
-      </header>
+      <MainTopBar
+        navigate={navigate}
+        privacyMode={privacyMode}
+        setPrivacyMode={setPrivacyMode}
+        currentUser={currentUser}
+        onForceSeedSync={onForceSeedSync}
+      />
 
       <main className="px-5 py-6 space-y-4">
         {accounts.map(account => {
